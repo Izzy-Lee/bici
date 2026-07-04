@@ -332,14 +332,17 @@ function render(d){
     sg.innerHTML = '<div class="empty">설문 응답 대기 중입니다 — 발송된 설문 링크로 참여해 주세요</div>';
   }
 
-// Google Drive 공유 링크에서 파일ID를 뽑아 미리보기 iframe URL로 변환
-// (지원 형식: /file/d/ID/, ?id=ID, open?id=ID)
+// Google Drive 파일 링크 + 구글 문서/슬라이드/시트 링크를 미리보기 URL로 변환
 function driveEmbedUrl(url){
   if(!url) return null;
+  // 구글 문서·슬라이드·스프레드시트 (docs.google.com)
+  let m = /docs\.google\.com\/(document|presentation|spreadsheets)\/d\/([a-zA-Z0-9_-]{10,})/.exec(url);
+  if(m) return `https://docs.google.com/${m[1]}/d/${m[2]}/preview`;
+  // 드라이브에 올린 파일 (PDF, 이미지 등)
   const patterns = [/\/file\/d\/([a-zA-Z0-9_-]{10,})/, /[?&]id=([a-zA-Z0-9_-]{10,})/];
   for(const p of patterns){
-    const m = p.exec(url);
-    if(m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+    const mm = p.exec(url);
+    if(mm) return `https://drive.google.com/file/d/${mm[1]}/preview`;
   }
   return null;
 }
@@ -350,10 +353,11 @@ const dir = document.getElementById('directionBox');
       .filter(Boolean)
       .map(t => `<span class="dtag">${esc(t)}</span>`).join('');
     const embedUrl = driveEmbedUrl(d.company.direction);
+    const ratio = embedUrl && embedUrl.includes('/presentation/') ? '16/10' : '1/1.2';
     dir.innerHTML = `<div class="card">
       ${embedUrl
-        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:1/1.2; border:none; border-radius:10px; margin-bottom:14px;" allow="autoplay"></iframe>
-           <a href="${esc(d.company.direction)}" target="_blank" style="font-size:13px; color:var(--accent);">Drive에서 원본 열기 ↗</a>`
+        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:${ratio}; border:none; border-radius:10px; margin-bottom:14px;" allow="autoplay"></iframe>
+           <a href="${esc(d.company.direction)}" target="_blank" style="font-size:13px; color:var(--accent);">원본 문서 열기 ↗</a>`
         : `<div class="direction-body">${esc(d.company.direction)}</div>`}
       ${tags ? `<div class="direction-tags">${tags}</div>` : ''}
     </div>`;
