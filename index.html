@@ -238,6 +238,17 @@
       </div>
     </div>
 
+    <div id="prevSubmitBanner" class="resume-banner">
+      <div class="rb-top">
+        <div class="rb-icon">✅</div>
+        <div class="rb-text"><strong>이미 제출하신 응답이 있어요.</strong><br>내용을 수정하시겠어요?</div>
+      </div>
+      <div class="rb-actions">
+        <button class="rb-btn primary" onclick="loadPrevSubmission()">이전 응답 불러와 수정하기</button>
+        <button class="rb-btn" onclick="document.getElementById('prevSubmitBanner').classList.remove('show')">새로 작성하기</button>
+      </div>
+    </div>
+
     <div class="brand-msg">
       <p class="msg-lead">"브랜드의 첫인상이 될 CI, 첫 단추가 가장 중요합니다."</p>
       <p class="msg-body">
@@ -710,7 +721,7 @@
 const state = {
   brandKo:'', brandEn:'', slogan:'', industry:'', bizDesc:'',
   markType:'', logoType:'', motif:'', style:[], mood:[],
-  feeling:[], color:[], colorPref:'', font:[], care:'', usage:[], phone:'', etc:'',
+  feeling:[], color:[], colorPref:'', font:'', care:'', usage:[], phone:'', etc:'',
   competitors:[], refUrl:'', refImages:[]
 };
 
@@ -1092,6 +1103,77 @@ function discardDraft(){
     }
   } catch(e) {}
 })();
+
+// ════════════════════════════════════════════════════════════
+// 이전 제출 응답 불러와 수정하기
+// ════════════════════════════════════════════════════════════
+function jsonpGet(url){
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_idx_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const timer = setTimeout(() => { cleanup(); reject(new Error('시간 초과')); }, 12000);
+    function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = data => { cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = () => { cleanup(); reject(new Error('로드 실패')); };
+    document.body.appendChild(script);
+  });
+}
+
+let serverSurveyCache = null;
+
+async function checkPrevSubmission(){
+  if(SHEET_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  const qs = new URLSearchParams(location.search);
+  const code = qs.get('c'), key = qs.get('k');
+  if(!code || !key) return;
+  try {
+    const d = await jsonpGet(`${SHEET_URL}?co=${encodeURIComponent(code)}&k=${encodeURIComponent(key)}`);
+    if(d && d.survey && Object.keys(d.survey).length){
+      serverSurveyCache = d.survey;
+      document.getElementById('prevSubmitBanner').classList.add('show');
+    }
+  } catch(e){ /* 조용히 무시 — 최초 방문자에겐 그냥 새 설문 화면만 보이면 됨 */ }
+}
+checkPrevSubmission();
+
+function loadPrevSubmission(){
+  if(!serverSurveyCache) return;
+  const sv = serverSurveyCache;
+
+  // 브랜드명 "국문 (영문)" 형태 복원
+  const nameMatch = /^(.*?)(?:\s\((.*)\))?$/.exec(sv['브랜드명'] || '');
+  if(nameMatch){ state.brandKo = nameMatch[1] || ''; state.brandEn = nameMatch[2] || ''; }
+
+  state.slogan = sv['슬로건'] || '';
+  state.industry = sv['업종'] || '';
+  state.markType = sv['출원형태'] || '';
+  state.logoType = sv['로고유형'] || '';
+  state.motif = sv['모티프'] || '';
+  state.style = sv['스타일'] ? sv['스타일'].split(', ') : [];
+  state.feeling = sv['느낌문장'] ? sv['느낌문장'].split(', ') : [];
+  state.font = sv['서체'] || '';
+  state.usage = sv['활용처'] ? sv['활용처'].split(', ') : [];
+  state.care = sv['중점사항'] || '';
+  state.etc = sv['요청사항'] || '';
+  state.competitors = sv['경쟁사URL'] ? sv['경쟁사URL'].split(', ').filter(Boolean) : [];
+  state.refUrl = sv['레퍼런스URL'] || '';
+
+  // 컬러: "웜톤 / 선호색상: 블루 계열" 형태 분리
+  const colorRaw = sv['컬러'] || '';
+  const colorParts = colorRaw.split(' / ');
+  state.color = colorParts[0] ? colorParts[0].split(', ').filter(Boolean) : [];
+  const prefPart = colorParts.find(p => p.startsWith('선호색상: '));
+  state.colorPref = prefPart ? prefPart.replace('선호색상: ', '') : '';
+
+  // 무드: "50% / 60% / 40%" 형태 분리
+  state.mood = sv['무드수치'] ? sv['무드수치'].split(' / ').map(v => v.replace('%','')) : [];
+
+  restoreUI();
+  document.getElementById('prevSubmitBanner').classList.remove('show');
+  goTo(1);
+}
+
 </script>
 </body>
 </html>
