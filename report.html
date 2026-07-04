@@ -399,6 +399,7 @@ const dir = document.getElementById('directionBox');
             <span class="draft-status ${x.status === '확정' ? 'fixed':''}">${esc(x.status || '검토중')}</span>
           </div>
           ${x.desc ? `<div class="draft-desc">${esc(x.desc)}</div>` : ''}
+          ${x.url ? `<a href="${esc(x.url)}" target="_blank" style="display:inline-block; margin-top:8px; font-size:13px; color:var(--accent);">원본 문서 열기 ↗</a>` : ''}
         </div>
       </div>`;
     }).join('') + '</div>';
