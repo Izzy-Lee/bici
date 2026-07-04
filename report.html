@@ -322,8 +322,8 @@ function render(d){
     if (d.survey['레퍼런스이미지']) {
       const imgs = String(d.survey['레퍼런스이미지']).split(',').map(s=>s.trim()).filter(Boolean);
       refImgBox.innerHTML = imgs.length
-        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:10px;">
-            ${imgs.map(u => `<a href="${esc(u)}" target="_blank"><img src="${esc(u)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);"></a>`).join('')}
+        ? `<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;">
+            ${imgs.map(u => `<a href="${esc(u)}" target="_blank"><img src="${esc(u)}" style="width:140px;height:140px;object-fit:cover;border-radius:10px;border:1px solid var(--line);display:block;"></a>`).join('')}
           </div>` : '';
     } else {
       refImgBox.innerHTML = '';
