@@ -264,7 +264,7 @@ async function load(manual){
   if(!CODE || !KEY){ showErr('잘못된 접근입니다', '전달받으신 전용 링크로 접속해 주세요.'); return; }
   if(API === 'YOUR_APPS_SCRIPT_URL_HERE'){ render(DEMO); return; }
   try {
-    const d = await jsonp(`${API}?c=${encodeURIComponent(CODE)}&k=${encodeURIComponent(KEY)}`);
+    const d = await jsonp(`${API}?co=${encodeURIComponent(CODE)}&k=${encodeURIComponent(KEY)}`);
     if(d.error){ showErr('접근 권한이 없습니다', d.error); return; }
     render(d);
   } catch(e){
