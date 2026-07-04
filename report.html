@@ -228,7 +228,7 @@
 </div>
 
 <script>
-const API = 'https://script.google.com/macros/s/AKfycbyUqGaWhmmnfdnKbNShQPmgEQdSa190qIhur5aLig54FoHzKBIeS8cGRNZibDF2UnME/exec';
+const API = 'https://script.google.com/macros/s/AKfycbzAuN__6_V1CWM8mq1xojsl2N6LHESdv759rmNSpx277wGrohBvdRgjnZKvPw7Gg6ir/exec';
 
 const qs = new URLSearchParams(location.search);
 const CODE = qs.get('c');
@@ -249,14 +249,20 @@ async function load(manual){
     if(d.error){ showErr('접근 권한이 없습니다', d.error); return; }
     render(d);
   } catch(e){
+    console.error('보고서 로딩 오류:', e);
+    showErr('불러오지 못했습니다', '네트워크 오류이거나 서버 응답에 문제가 있어요. 새로고침 버튼을 눌러보세요. (개발자도구 콘솔에 자세한 오류가 남아있어요)');
     if(manual) alert('불러오기에 실패했어요. 잠시 후 다시 시도해 주세요.');
   }
 }
 
 function showErr(t, m){
   document.getElementById('loading').style.display = 'none';
+  const existing = document.querySelector('.err');
+  if(existing) existing.remove();
   document.body.insertAdjacentHTML('beforeend',
-    `<div class="err"><h2>${esc(t)}</h2><p>${esc(m)}</p></div>`);
+    `<div class="err"><h2>${esc(t)}</h2><p>${esc(m)}</p>
+      <button onclick="location.reload()" style="margin-top:16px; padding:10px 20px; border-radius:99px; border:1.5px solid var(--accent); background:var(--surface); color:var(--accent); font-family:inherit; font-size:14px; font-weight:700; cursor:pointer;">다시 시도</button>
+    </div>`);
 }
 
 function render(d){
