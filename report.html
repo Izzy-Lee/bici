@@ -307,6 +307,8 @@ function render(d){
   if(d.survey && Object.keys(d.survey).length){
     const order = [
       ['회차','제출 회차'],
+      ['브랜드명(국문)','브랜드명 (국문)'],['브랜드명(영문)','브랜드명 (영문)'],
+      ['슬로건','슬로건'],['업종','업종'],
       ['출원형태','출원 형태'],['로고유형','로고 유형'],['모티프','심볼 모티프'],
       ['스타일','스타일'],['느낌문장','전하고 싶은 느낌'],['컬러','컬러 방향'],
       ['서체','서체 느낌'],['활용처','활용처'],['중점사항','중점 사항'],
@@ -318,14 +320,20 @@ function render(d){
         `<div class="fact"><div class="k">${esc(label)}</div><div class="v">${esc(d.survey[k])}</div></div>`
       ).join('') || '<div class="empty">설문 응답 대기 중입니다</div>';
 
+    let refImgBox = document.getElementById('refImgBox');
+    if(!refImgBox){
+      refImgBox = document.createElement('div');
+      refImgBox.id = 'refImgBox';
+      sg.insertAdjacentElement('afterend', refImgBox);
+    }
     if (d.survey['레퍼런스이미지']) {
       const imgs = String(d.survey['레퍼런스이미지']).split(',').map(s=>s.trim()).filter(Boolean);
-      if (imgs.length) {
-        sg.insertAdjacentHTML('afterend',
-          `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:10px;">
+      refImgBox.innerHTML = imgs.length
+        ? `<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:10px;">
             ${imgs.map(u => `<a href="${esc(u)}" target="_blank"><img src="${esc(u)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:10px;border:1px solid var(--line);"></a>`).join('')}
-          </div>`);
-      }
+          </div>` : '';
+    } else {
+      refImgBox.innerHTML = '';
     }
   } else {
     sg.innerHTML = '<div class="empty">설문 응답 대기 중입니다 — 발송된 설문 링크로 참여해 주세요</div>';

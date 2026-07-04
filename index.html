@@ -249,6 +249,13 @@
       </div>
     </div>
 
+    <div id="lockedBanner" class="resume-banner" style="background:#FAEEDA; border-color:#854F0B;">
+      <div class="rb-top">
+        <div class="rb-icon">🔒</div>
+        <div class="rb-text" style="color:#854F0B;"><strong>디자인 방향서가 이미 업로드되어 수정이 불가능합니다.</strong><br>내용을 바꾸고 싶으시면 담당자에게 이메일 또는 전화로 문의해 주세요.</div>
+      </div>
+    </div>
+
     <div class="brand-msg">
       <p class="msg-lead">"브랜드의 첫인상이 될 CI, 첫 단추가 가장 중요합니다."</p>
       <p class="msg-body">
@@ -318,7 +325,7 @@
 
     <p class="msg-closing">고객님의 소중한 브랜드 가치를 시각화하는 여정,<br>지금 설문으로 시작해 보세요!</p>
   </div>
-  <div class="bottom-bar"><button class="cta" onclick="goTo(1)">시작하기 →</button></div>
+  <div class="bottom-bar"><button class="cta" id="landingCta" onclick="if(!directionLocked) goTo(1)">시작하기 →</button></div>
 </div>
 
 <!-- S1 기본정보 -->
@@ -892,6 +899,10 @@ function removeImg(id){
 
 // ── 제출 ──
 function submit(){
+  if(directionLocked){
+    alert('디자인 방향서가 이미 업로드되어 수정이 불가능합니다. 담당자에게 문의해 주세요.');
+    return;
+  }
   state.bizDesc = document.getElementById('bizDesc')?.value || '';
   state.motif = document.getElementById('motif').value;
   state.etc = document.getElementById('etc').value;
@@ -912,7 +923,7 @@ function submit(){
     type: 'survey',
     timestamp: new Date().toLocaleString('ko-KR'),
     code: code,
-    brandName: state.brandKo + (state.brandEn ? ' ('+state.brandEn+')' : ''),
+    brandKo: state.brandKo, brandEn: state.brandEn,
     slogan: state.slogan, industry: state.industry,
     markType: state.markType, logoType: state.logoType,
     motif: state.motif, style: state.style.join(', '),
@@ -1121,6 +1132,7 @@ function jsonpGet(url){
 }
 
 let serverSurveyCache = null;
+let directionLocked = false;
 
 async function checkPrevSubmission(){
   if(SHEET_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
@@ -1129,6 +1141,16 @@ async function checkPrevSubmission(){
   if(!code || !key) return;
   try {
     const d = await jsonpGet(`${SHEET_URL}?co=${encodeURIComponent(code)}&k=${encodeURIComponent(key)}`);
+
+    if(d && d.company && d.company.direction){
+      // 디자인 방향서가 이미 업로드된 경우 — 수정 잠금
+      directionLocked = true;
+      document.getElementById('lockedBanner').classList.add('show');
+      document.getElementById('landingCta').disabled = true;
+      document.getElementById('landingCta').textContent = '수정이 불가능합니다';
+      return;
+    }
+
     if(d && d.survey && Object.keys(d.survey).length){
       serverSurveyCache = d.survey;
       document.getElementById('prevSubmitBanner').classList.add('show');
@@ -1141,9 +1163,8 @@ function loadPrevSubmission(){
   if(!serverSurveyCache) return;
   const sv = serverSurveyCache;
 
-  // 브랜드명 "국문 (영문)" 형태 복원
-  const nameMatch = /^(.*?)(?:\s\((.*)\))?$/.exec(sv['브랜드명'] || '');
-  if(nameMatch){ state.brandKo = nameMatch[1] || ''; state.brandEn = nameMatch[2] || ''; }
+  state.brandKo = sv['브랜드명(국문)'] || '';
+  state.brandEn = sv['브랜드명(영문)'] || '';
 
   state.slogan = sv['슬로건'] || '';
   state.industry = sv['업종'] || '';
