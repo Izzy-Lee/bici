@@ -213,6 +213,14 @@
 
   <div class="sec">
     <div class="sec-head">
+      <span class="sec-title">고객 피드백</span>
+      <span class="sec-note">이메일·전화로 전달해 주신 의견 기록</span>
+    </div>
+    <div id="feedbackBox"></div>
+  </div>
+
+  <div class="sec">
+    <div class="sec-head">
       <span class="sec-title">시안</span>
       <span class="sec-note">확정 시안은 배지로 표시됩니다</span>
     </div>
@@ -381,6 +389,14 @@ const dir = document.getElementById('directionBox');
       </div>`).join('');
   } else {
     op.innerHTML = '<div class="empty">변리사 검토 의견이 등록되면 이곳에 표시됩니다</div>';
+  }
+
+  // 고객 피드백 (이메일·전화로 받은 내용을 업체목록 '고객피드백' 셀에 기록)
+  const fb = document.getElementById('feedbackBox');
+  if(d.company.feedback){
+    fb.innerHTML = `<div class="card"><div class="direction-body">${esc(d.company.feedback)}</div></div>`;
+  } else {
+    fb.innerHTML = '<div class="empty">방향서 확인 후 전달해 주신 의견이 이곳에 기록됩니다</div>';
   }
 
   const dr = document.getElementById('draftBox');
