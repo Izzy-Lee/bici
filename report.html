@@ -354,10 +354,10 @@ const dir = document.getElementById('directionBox');
       .filter(Boolean)
       .map(t => `<span class="dtag">${esc(t)}</span>`).join('');
     const embedUrl = driveEmbedUrl(d.company.direction);
-    const ratio = embedUrl && embedUrl.includes('/presentation/') ? '16/10' : '1/1.2';
+    const ratio = embedUrl && embedUrl.includes('/presentation/') ? '16/9.9' : '1/1.2';
     dir.innerHTML = `<div class="card">
       ${embedUrl
-        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:${ratio}; border:none; border-radius:10px; margin-bottom:14px;" allow="autoplay"></iframe>
+        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:${ratio}; border:none; border-radius:10px; margin-bottom:14px; background:#fff;" allow="autoplay"></iframe>
            <a href="${esc(d.company.direction)}" target="_blank" style="font-size:13px; color:var(--accent);">원본 문서 열기 ↗</a>`
         : `<div class="direction-body">${esc(d.company.direction)}</div>`}
       ${tags ? `<div class="direction-tags">${tags}</div>` : ''}
@@ -387,8 +387,9 @@ const dir = document.getElementById('directionBox');
   if(d.drafts && d.drafts.length){
     dr.innerHTML = '<div class="draft-grid">' + d.drafts.map(x => {
       const embedUrl = driveEmbedUrl(x.url);
+      const ratio = embedUrl && embedUrl.includes('/presentation/') ? '16/9.9' : '4/3';
       const media = embedUrl
-        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:4/3; border:none;" allow="autoplay"></iframe>`
+        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:${ratio}; border:none; background:#fff;" allow="autoplay"></iframe>`
         : (x.url ? `<img src="${esc(x.url)}" alt="${esc(x.name)} 시안">` : '');
       return `
       <div class="draft">
