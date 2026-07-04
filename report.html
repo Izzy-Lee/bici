@@ -305,19 +305,12 @@ function render(d){
 
   const sg = document.getElementById('surveyGrid');
   if(d.survey && Object.keys(d.survey).length){
-    const order = [
-      ['회차','제출 회차'],
-      ['브랜드명(국문)','브랜드명 (국문)'],['브랜드명(영문)','브랜드명 (영문)'],
-      ['슬로건','슬로건'],['업종','업종'],
-      ['출원형태','출원 형태'],['로고유형','로고 유형'],['모티프','심볼 모티프'],
-      ['스타일','스타일'],['느낌문장','전하고 싶은 느낌'],['컬러','컬러 방향'],
-      ['서체','서체 느낌'],['활용처','활용처'],['중점사항','중점 사항'],
-      ['경쟁사URL','경쟁사'],['레퍼런스URL','레퍼런스 링크']
-    ];
-    sg.innerHTML = order
-      .filter(([k]) => d.survey[k])
-      .map(([k,label]) =>
-        `<div class="fact"><div class="k">${esc(label)}</div><div class="v">${esc(d.survey[k])}</div></div>`
+    // 시트 헤더 순서 그대로, 값이 있는 모든 항목을 자동 표시 (누락 방지)
+    const HIDDEN_KEYS = ['레퍼런스이미지'];
+    sg.innerHTML = Object.entries(d.survey)
+      .filter(([k,v]) => v && !HIDDEN_KEYS.includes(k))
+      .map(([k,v]) =>
+        `<div class="fact"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`
       ).join('') || '<div class="empty">설문 응답 대기 중입니다</div>';
 
     let refImgBox = document.getElementById('refImgBox');

@@ -347,7 +347,6 @@
   </div>
   <div class="field">
     <div class="field-label">업종 <span class="req">필수</span></div>
-    <input type="text" id="industrySearch" placeholder="🔍 업종 검색 (예: 카페, 부동산...)" style="margin-bottom:10px;" oninput="filterIndustry(this.value)">
     <div class="chip-group" id="industryGroup">
       <div class="chip" onclick="toggleChip(this,'industry',1)">카페·베이커리</div>
       <div class="chip" onclick="toggleChip(this,'industry',1)">외식업·요식업</div>
@@ -760,13 +759,6 @@ function validate(step){
   }
 }
 
-function filterIndustry(q){
-  const query = q.trim();
-  document.querySelectorAll('#industryGroup .chip').forEach(c => {
-    c.classList.toggle('hide', query && !c.textContent.includes(query));
-  });
-}
-
 function toggleChip(el, key, step, mode){
   const group = el.parentElement;
   const selector = mode==='img' ? '.img-card' : '.chip';
@@ -831,6 +823,7 @@ document.getElementById('phone')?.addEventListener('input', ()=>refreshStepCta(9
 
 // 무드 슬라이더
 document.querySelectorAll('.mood').forEach((m,i) => {
+  state.mood[i] = m.value; // 초기값(50)도 기록되도록
   m.addEventListener('input', () => { state.mood[i] = m.value; });
 });
 
@@ -909,8 +902,14 @@ function submit(){
   state.competitors = [...document.querySelectorAll('.comp-url')].map(i=>i.value.trim()).filter(Boolean);
   state.refUrl = document.getElementById('refUrl').value.trim();
 
+  const MOOD_LABELS = [['클래식','모던'],['친근함','고급스러움'],['부드러움','강렬함']];
   const moodSummary = state.mood.length
-    ? state.mood.map(v=>v+'%').join(' / ') : '';
+    ? state.mood.map((v,i)=>{
+        const [l,r] = MOOD_LABELS[i] || ['',''];
+        const n = Number(v);
+        return `${l} ${100-n}% ${r} ${n}%`;
+      }).join(' / ')
+    : '';
 
   const colorSummary = [state.color.join(', '), state.colorPref ? ('선호색상: '+state.colorPref) : '']
     .filter(Boolean).join(' / ');
@@ -1188,7 +1187,11 @@ function loadPrevSubmission(){
   state.colorPref = prefPart ? prefPart.replace('선호색상: ', '') : '';
 
   // 무드: "50% / 60% / 40%" 형태 분리
-  state.mood = sv['무드수치'] ? sv['무드수치'].split(' / ').map(v => v.replace('%','')) : [];
+  // 무드: "클래식 30% 모던 70% / ..." 형식에서 오른쪽 값(슬라이더 값) 추출
+  state.mood = sv['무드수치'] ? sv['무드수치'].split(' / ').map(seg => {
+    const nums = seg.match(/(\d+)%/g);
+    return nums && nums.length ? nums[nums.length-1].replace('%','') : '50';
+  }) : [];
 
   restoreUI();
   document.getElementById('prevSubmitBanner').classList.remove('show');
