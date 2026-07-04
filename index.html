@@ -895,11 +895,8 @@ function submit(){
     alert('디자인 방향서가 이미 업로드되어 수정이 불가능합니다. 담당자에게 문의해 주세요.');
     return;
   }
-  state.bizDesc = document.getElementById('bizDesc')?.value || '';
-  state.motif = document.getElementById('motif').value;
-  state.etc = document.getElementById('etc').value;
-  state.competitors = [...document.querySelectorAll('.comp-url')].map(i=>i.value.trim()).filter(Boolean);
-  state.refUrl = document.getElementById('refUrl').value.trim();
+  // 모든 텍스트 입력값을 제출 직전에 한 번 더 수집 (누락 방지)
+  syncTextInputs();
 
   const MOOD_LABELS = [['클래식','모던'],['친근함','고급스러움'],['부드러움','강렬함']];
   const moodSummary = state.mood.length
@@ -971,8 +968,23 @@ function sendToSheet(data){
 // ════════════════════════════════════════════════════════════
 const DRAFT_KEY = 'bici_survey_draft_v1';
 
+// 텍스트 입력값을 state로 동기화 (저장·제출 전 공통 사용)
+function syncTextInputs(){
+  const read = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  state.brandKo = read('brandKo').trim();
+  state.brandEn = read('brandEn').trim();
+  state.slogan = read('slogan').trim();
+  state.bizDesc = read('bizDesc');
+  state.motif = read('motif');
+  state.phone = read('phone').trim();
+  state.etc = read('etc');
+  state.refUrl = read('refUrl').trim();
+  state.competitors = [...document.querySelectorAll('.comp-url')].map(i=>i.value.trim()).filter(Boolean);
+}
+
 function saveDraft(){
   try {
+    syncTextInputs();
     const snapshot = Object.assign({}, state, {
       refImages: (state.refImages || []).map(i => ({ name: i.name })) // 이미지 원본은 저장 제외
     });
