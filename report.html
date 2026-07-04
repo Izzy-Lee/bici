@@ -240,12 +240,31 @@ function esc(s){
   }[m]));
 }
 
+function jsonp(url){
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_cb_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const timer = setTimeout(() => {
+      cleanup();
+      reject(new Error('요청 시간이 초과됐어요'));
+    }, 15000);
+    function cleanup(){
+      clearTimeout(timer);
+      delete window[cbName];
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+    window[cbName] = data => { cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = () => { cleanup(); reject(new Error('스크립트를 불러오지 못했어요')); };
+    document.body.appendChild(script);
+  });
+}
+
 async function load(manual){
   if(!CODE || !KEY){ showErr('잘못된 접근입니다', '전달받으신 전용 링크로 접속해 주세요.'); return; }
   if(API === 'YOUR_APPS_SCRIPT_URL_HERE'){ render(DEMO); return; }
   try {
-    const r = await fetch(`${API}?c=${encodeURIComponent(CODE)}&k=${encodeURIComponent(KEY)}`);
-    const d = await r.json();
+    const d = await jsonp(`${API}?c=${encodeURIComponent(CODE)}&k=${encodeURIComponent(KEY)}`);
     if(d.error){ showErr('접근 권한이 없습니다', d.error); return; }
     render(d);
   } catch(e){
