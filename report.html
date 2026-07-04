@@ -100,7 +100,7 @@
     border-radius: 10px; padding: 12px 14px;
   }
   .fact .k { font-size: 12px; color: var(--hint); margin-bottom: 2px; }
-  .fact .v { font-size: 14px; font-weight: 500; }
+  .fact .v { font-size: 14px; font-weight: 500; overflow-wrap: break-word; word-break: break-all; }
 
   /* ── 방향서 ── */
   .direction-body { font-size: 15px; white-space: pre-wrap; }
@@ -221,7 +221,10 @@
 
   <div class="footer">
     <strong>문의</strong> — 이 보고서는 실시간으로 갱신됩니다.
-    내용에 대한 의견은 이메일 회신 또는 전화로 알려주세요.<br>
+    내용에 대한 의견은 아래로 연락해 주세요.<br>
+    📧 <a href="mailto:nswer@naver.com" style="color:var(--accent);">nswer@naver.com</a>
+    &nbsp;·&nbsp;
+    ☎ <a href="tel:010-3394-3372" style="color:var(--accent);">010-3394-3372</a><br>
     ㈜플러스프레스 · 아트에이블 디자인랩
   </div>
 
@@ -328,13 +331,29 @@ function render(d){
     sg.innerHTML = '<div class="empty">설문 응답 대기 중입니다 — 발송된 설문 링크로 참여해 주세요</div>';
   }
 
-  const dir = document.getElementById('directionBox');
+// Google Drive 공유 링크에서 파일ID를 뽑아 미리보기 iframe URL로 변환
+// (지원 형식: /file/d/ID/, ?id=ID, open?id=ID)
+function driveEmbedUrl(url){
+  if(!url) return null;
+  const patterns = [/\/file\/d\/([a-zA-Z0-9_-]{10,})/, /[?&]id=([a-zA-Z0-9_-]{10,})/];
+  for(const p of patterns){
+    const m = p.exec(url);
+    if(m) return `https://drive.google.com/file/d/${m[1]}/preview`;
+  }
+  return null;
+}
+
+const dir = document.getElementById('directionBox');
   if(d.company.direction){
     const tags = [d.company.colorDir, d.company.fontDir, d.company.moodDir]
       .filter(Boolean)
       .map(t => `<span class="dtag">${esc(t)}</span>`).join('');
+    const embedUrl = driveEmbedUrl(d.company.direction);
     dir.innerHTML = `<div class="card">
-      <div class="direction-body">${esc(d.company.direction)}</div>
+      ${embedUrl
+        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:1/1.2; border:none; border-radius:10px; margin-bottom:14px;" allow="autoplay"></iframe>
+           <a href="${esc(d.company.direction)}" target="_blank" style="font-size:13px; color:var(--accent);">Drive에서 원본 열기 ↗</a>`
+        : `<div class="direction-body">${esc(d.company.direction)}</div>`}
       ${tags ? `<div class="direction-tags">${tags}</div>` : ''}
     </div>`;
   } else {
@@ -360,16 +379,22 @@ function render(d){
 
   const dr = document.getElementById('draftBox');
   if(d.drafts && d.drafts.length){
-    dr.innerHTML = '<div class="draft-grid">' + d.drafts.map(x => `
+    dr.innerHTML = '<div class="draft-grid">' + d.drafts.map(x => {
+      const embedUrl = driveEmbedUrl(x.url);
+      const media = embedUrl
+        ? `<iframe src="${esc(embedUrl)}" style="width:100%; aspect-ratio:4/3; border:none;" allow="autoplay"></iframe>`
+        : (x.url ? `<img src="${esc(x.url)}" alt="${esc(x.name)} 시안">` : '');
+      return `
       <div class="draft">
-        ${x.url ? `<img src="${esc(x.url)}" alt="${esc(x.name)} 시안">` : ''}
+        ${media}
         <div class="draft-info">
           <div class="draft-name">${esc(x.name)}
             <span class="draft-status ${x.status === '확정' ? 'fixed':''}">${esc(x.status || '검토중')}</span>
           </div>
           ${x.desc ? `<div class="draft-desc">${esc(x.desc)}</div>` : ''}
         </div>
-      </div>`).join('') + '</div>';
+      </div>`;
+    }).join('') + '</div>';
   } else {
     dr.innerHTML = '<div class="empty">방향서 확정 후 시안이 업로드됩니다</div>';
   }
