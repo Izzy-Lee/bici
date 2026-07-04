@@ -305,12 +305,12 @@ function render(d){
 
   const sg = document.getElementById('surveyGrid');
   if(d.survey && Object.keys(d.survey).length){
-    // 시트 헤더 순서 그대로, 값이 있는 모든 항목을 자동 표시 (누락 방지)
+    // 시트 헤더 순서 그대로 모든 항목 표시 — 값이 없으면 빈칸으로 유지
     const HIDDEN_KEYS = ['레퍼런스이미지'];
     sg.innerHTML = Object.entries(d.survey)
-      .filter(([k,v]) => v && !HIDDEN_KEYS.includes(k))
+      .filter(([k]) => !HIDDEN_KEYS.includes(k))
       .map(([k,v]) =>
-        `<div class="fact"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`
+        `<div class="fact"><div class="k">${esc(k)}</div><div class="v">${v ? esc(v) : '&nbsp;'}</div></div>`
       ).join('') || '<div class="empty">설문 응답 대기 중입니다</div>';
 
     let refImgBox = document.getElementById('refImgBox');

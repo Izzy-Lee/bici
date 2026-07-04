@@ -183,7 +183,6 @@
   .color-row.selected .card-title { color: var(--accent); font-weight: 700; }
 
   /* ── 업종 검색 ── */
-  #industrySearch { margin-bottom: 10px; }
   .chip.hide { display: none; }
 
   /* ── 결과 확인 버튼 ── */
@@ -928,7 +927,7 @@ function submit(){
     motif: state.motif, style: state.style.join(', '),
     feeling: state.feeling.join(', '), color: colorSummary,
     font: state.font, usage: state.usage.join(', '),
-    request: [state.bizDesc, state.etc].filter(Boolean).join(' / '),
+    bizDesc: state.bizDesc, phone: state.phone, etc: state.etc,
     care: state.care, mood: moodSummary,
     competitors: state.competitors.join(', '),
     refUrl: state.refUrl,
@@ -1176,6 +1175,8 @@ function loadPrevSubmission(){
   state.usage = sv['활용처'] ? sv['활용처'].split(', ') : [];
   state.care = sv['중점사항'] || '';
   state.etc = sv['요청사항'] || '';
+  state.bizDesc = sv['사업내용'] || '';
+  state.phone = sv['연락처'] || '';
   state.competitors = sv['경쟁사URL'] ? sv['경쟁사URL'].split(', ').filter(Boolean) : [];
   state.refUrl = sv['레퍼런스URL'] || '';
 
