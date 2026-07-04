@@ -104,7 +104,7 @@
   .thumb .bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.4); }
   .thumb .bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width .2s; }
 
-  .bottom-bar { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 16px 20px 32px; background: linear-gradient(to top, var(--bg) 70%, transparent); }
+  .bottom-bar { position: fixed; z-index: 60; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 20px 20px 32px; background: var(--bg); box-shadow: 0 -12px 24px -8px rgba(0,0,0,0.06); }
   .cta { width: 100%; padding: 17px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .15s; box-shadow: 0 4px 20px rgba(60,52,137,0.3); }
   .cta:disabled { background: var(--hint); box-shadow: none; cursor: not-allowed; }
   .cta:not(:disabled):active { transform: scale(0.98); }
@@ -466,17 +466,17 @@
   <div class="field" style="margin-top:28px;">
     <div class="field-label">무드 조절</div>
     <div class="slider-row">
-      <img src="img/4.jpg" alt="클래식 모던 예시" class="mood-thumb" style="height:240px; width: 440px; aspect-ratio:auto;">
+      <img src="img/4.jpg" alt="클래식 모던 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
       <div class="slider-labels"><span>클래식</span><span>모던</span></div>
       <input type="range" min="0" max="100" value="50" class="mood">
     </div>
     <div class="slider-row">
-      <img src="img/5.jpg" alt="친근함 고급스러움 예시" class="mood-thumb" style="height:240px; width: 440px;aspect-ratio:auto;">
+      <img src="img/5.jpg" alt="친근함 고급스러움 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
       <div class="slider-labels"><span>친근함</span><span>고급스러움</span></div>
       <input type="range" min="0" max="100" value="50" class="mood">
     </div>
     <div class="slider-row">
-      <img src="img/6.jpg" alt="부드러움 강렬함 예시" class="mood-thumb" style="height:240px; width: 440px; aspect-ratio:auto;">
+      <img src="img/6.jpg" alt="부드러움 강렬함 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
       <div class="slider-labels"><span>부드러움</span><span>강렬함</span></div>
       <input type="range" min="0" max="100" value="50" class="mood">
     </div>
