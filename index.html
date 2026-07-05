@@ -16,8 +16,10 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body {
     font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text);
-    min-height: 100vh; max-width: 480px; margin: 0 auto;
+    min-height: 100vh;
   }
+  .screen { display: none; padding: 28px 20px 120px; animation: fadeUp .3s ease; max-width: 480px; margin: 0 auto; }
+  #screen-0 { max-width: none; padding: 0 0 60px; }
 
   .progress-bar { position: sticky; top: 0; z-index: 100; background: var(--surface); padding: 14px 20px 0; border-bottom: 0.5px solid var(--border); }
   .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
@@ -26,7 +28,6 @@
   .track { height: 3px; background: var(--accent-soft); border-radius: 99px; }
   .fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); }
 
-  .screen { display: none; padding: 28px 20px 120px; animation: fadeUp .3s ease; }
   .screen.active { display: block; }
   @keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
 
@@ -109,14 +110,38 @@
   .cta:disabled { background: var(--hint); box-shadow: none; cursor: not-allowed; }
   .cta:not(:disabled):active { transform: scale(0.98); }
 
-  .landing-hero { background: var(--accent); padding: 42px 20px 32px; text-align: center; color: #fff; margin: -28px -20px 0; border-radius: 0 0 24px 24px; }
-  .landing-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 99px; font-size: 12px; margin-bottom: 16px; letter-spacing: 0.04em; }
-  .landing-title { font-size: 25px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+  .landing-hero { background: linear-gradient(160deg, #46399B, #3C3489 55%, #322B77); color: #fff; border-radius: 0 0 24px 24px; }
+  .hero-inner { max-width: 480px; margin: 0 auto; padding: 42px 20px 28px; text-align: center; }
+  .hero-art { display: none; }
+  .landing-badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 5px 16px; border-radius: 99px; font-size: 12px; margin-bottom: 16px; letter-spacing: 0.05em; font-weight: 500; }
+  .landing-title { font-size: 26px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+  .landing-title em { font-style: normal; color: #C9B8FF; }
   .landing-sub { font-size: 14px; opacity: 0.85; line-height: 1.6; }
-  .info-chips { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 18px; }
-  .info-chip { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25); padding: 6px 13px; border-radius: 99px; font-size: 12.5px; }
-  .notice-box { background: #FAEEDA; border-radius: var(--radius-sm); padding: 14px 16px; margin-top: 20px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .info-chips { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 20px; }
+  .info-chip { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); padding: 11px 8px; border-radius: 14px; text-align: center; }
+  .info-chip .ic-t { font-size: 13px; font-weight: 700; }
+  .info-chip .ic-s { font-size: 11px; opacity: 0.75; margin-top: 3px; line-height: 1.4; }
+
+  .landing-body { max-width: 480px; margin: 0 auto; padding: 24px 20px 0; }
+  .notice-box { background: #FAEEDA; border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
   .notice-box strong { color: #854F0B; }
+
+  /* 하단 안내 카드 + CTA */
+  .heart-card {
+    background: var(--accent-soft); border-radius: var(--radius); padding: 20px;
+    margin-top: 28px; text-align: center;
+  }
+  .hc-left { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .hc-icon { width: 52px; height: 52px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 14px rgba(60,52,137,0.14); }
+  .hc-text { font-size: 14.5px; line-height: 1.6; color: var(--text); }
+  .hc-text strong { color: var(--accent); }
+  .hc-cta { margin-top: 16px; }
+
+  .feature-cards { display: grid; gap: 10px; margin-top: 24px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 16px; }
+  .fc-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 10px; }
+  .fc-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .fc-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
 
   .done-wrap { text-align: center; padding: 60px 20px; }
   .done-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color:#fff; font-size: 36px; display:flex; align-items:center; justify-content:center; margin: 0 auto 24px; }
@@ -124,21 +149,24 @@
   .done-sub { font-size: 15px; color: var(--muted); line-height: 1.6; }
 
   /* ── 브랜드 안내문 (A안) ── */
-  .brand-msg { margin-top: 22px; }
-  .msg-lead { font-size: 15.5px; font-weight: 700; color: var(--accent); margin-bottom: 12px; line-height: 1.55; }
-  .msg-body { font-size: 13.5px; color: var(--muted); line-height: 1.75; margin-bottom: 12px; }
-  .msg-body strong { color: var(--text); }
-  .process-title { font-size: 15px; font-weight: 700; margin: 26px 0 16px; }
+  .brand-msg { margin-top: 26px; text-align: center; }
+  .msg-lead { font-size: 16px; font-weight: 700; color: var(--accent-mid); margin-bottom: 14px; line-height: 1.55; position: relative; display: inline-block; padding: 0 18px; }
+  .msg-lead::before { content: '“'; position: absolute; left: -2px; top: -6px; font-size: 26px; color: #C9B8FF; font-family: Georgia, serif; }
+  .msg-lead::after { content: '”'; position: absolute; right: -2px; top: -6px; font-size: 26px; color: #C9B8FF; font-family: Georgia, serif; }
+  .msg-body { font-size: 13.5px; color: var(--muted); line-height: 1.8; margin-bottom: 12px; }
+  .msg-body strong { color: var(--accent-mid); }
+  .process-title { font-size: 15.5px; font-weight: 700; margin: 30px 0 18px; text-align: center; }
 
-  /* ── 진행 프로세스 타임라인 ── */
+  /* ── 진행 프로세스 타임라인 (모바일: 세로) ── */
   .timeline { position: relative; padding-left: 2px; }
-  .tl-item { display: flex; gap: 14px; position: relative; padding-bottom: 22px; }
+  .tl-item { display: flex; gap: 12px; position: relative; padding-bottom: 24px; }
   .tl-item:last-child { padding-bottom: 0; }
   .tl-item::before {
-    content: ''; position: absolute; left: 17px; top: 36px; bottom: -6px;
+    content: ''; position: absolute; left: 17px; top: 38px; bottom: -4px;
     width: 2px; background: var(--border);
   }
   .tl-item:last-child::before { display: none; }
+  .tl-head { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
   .tl-badge {
     flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
@@ -146,15 +174,63 @@
   }
   .tl-badge.who-customer { background: var(--accent-mid); }
   .tl-badge.who-studio { background: #0F6E56; }
-  .tl-badge.who-final { background: #854F0B; }
-  .tl-body { padding-top: 5px; flex: 1; }
+  .tl-badge.who-final { background: #D97B29; }
+  .tl-icon {
+    width: 44px; height: 44px; border-radius: 13px; background: var(--surface);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .tl-body { padding-top: 3px; flex: 1; }
   .tl-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
   .tl-who {
     font-size: 11px; font-weight: 500; color: var(--hint);
     padding: 2px 9px; border-radius: 99px; background: #f0ede8;
   }
   .tl-desc { font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
-  .msg-closing { font-size: 14.5px; font-weight: 700; text-align: center; margin-top: 26px; color: var(--text); line-height: 1.6; }
+
+  /* ══════════ PC (900px 이상) ══════════ */
+  @media (min-width: 900px) {
+    .landing-hero { background: linear-gradient(150deg, #EFECFF, #F4F1FE 55%, #EDE7FC); color: var(--text); border-radius: 0; }
+    .hero-inner {
+      max-width: 1080px; padding: 56px 32px 48px;
+      display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: 32px;
+      text-align: left;
+    }
+    .hero-art { display: block; }
+    .hero-art svg { width: 100%; max-width: 380px; }
+    .landing-badge { background: var(--accent); color: #fff; }
+    .landing-title { font-size: 38px; }
+    .landing-title em { color: var(--accent-mid); }
+    .landing-sub { color: var(--muted); opacity: 1; font-size: 15px; }
+    .info-chips { grid-template-columns: repeat(3, minmax(0, 180px)); margin-top: 26px; }
+    .info-chip { background: var(--surface); border: 1px solid var(--border); color: var(--text); text-align: left; padding: 12px 14px; }
+    .info-chip .ic-s { color: var(--hint); opacity: 1; }
+
+    .landing-body { max-width: 1000px; padding: 36px 32px 0; }
+    .brand-msg { max-width: 720px; margin: 34px auto 0; }
+    .msg-lead { font-size: 19px; }
+    .msg-body { font-size: 14.5px; }
+
+    /* 프로세스: 가로 7단계 */
+    .timeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding-left: 0; margin-top: 6px; }
+    .tl-item { flex-direction: column; align-items: center; text-align: center; padding-bottom: 0; gap: 10px; }
+    .tl-item::before {
+      left: calc(50% + 30px); right: calc(-50% + 30px); top: 21px;
+      width: auto; height: 2px; bottom: auto;
+    }
+    .tl-head { flex-direction: column; gap: 8px; }
+    .tl-icon { width: 56px; height: 56px; border-radius: 50%; font-size: 24px; }
+    .tl-badge { width: 26px; height: 26px; font-size: 12px; }
+    .tl-name { justify-content: center; font-size: 13.5px; }
+    .tl-desc { font-size: 12px; }
+
+    .heart-card { display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 22px 26px; margin-top: 36px; }
+    .hc-left { flex-direction: row; gap: 16px; align-items: center; }
+    .hc-cta { margin-top: 0; width: auto; padding: 15px 36px; }
+    .mobile-br { display: none; }
+
+    .feature-cards { grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  }
 
   /* ── 이어서 작성 배너 ── */
   .resume-banner {
@@ -209,16 +285,42 @@
 <!-- S0 랜딩 -->
 <div class="screen active" id="screen-0">
   <div class="landing-hero">
-    <div class="landing-badge">BRAND IDENTITY 진단</div>
-    <div class="landing-title">우리 브랜드,<br>어떤 얼굴이 좋을까요?</div>
-    <div class="landing-sub">BI·CI 제작 전 방향을 정하는<br>9가지 질문 🎨</div>
-    <div class="info-chips">
-      <span class="info-chip">⏱ 약 5분</span>
-      <span class="info-chip">📷 이미지 첨부 가능</span>
-      <span class="info-chip">🔒 상표출원 활용</span>
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="landing-badge">BRAND IDENTITY 진단</div>
+        <div class="landing-title">우리 브랜드,<br>어떤 <em>얼굴</em>이 좋을까요?</div>
+        <div class="landing-sub">BI·CI 제작 전 방향을 정하는 9가지 질문 🎨</div>
+        <div class="info-chips">
+          <div class="info-chip"><div class="ic-t">⏱ 약 5분</div><div class="ic-s">빠르고 간편해요</div></div>
+          <div class="info-chip"><div class="ic-t">🖼 이미지 첨부</div><div class="ic-s">참고 이미지를 올려보세요</div></div>
+          <div class="info-chip"><div class="ic-t">🔒 상표출원 활용</div><div class="ic-s">결과는 안전하게 보관됩니다</div></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 320 240">
+          <g transform="rotate(8 210 120)">
+            <rect x="150" y="40" width="120" height="150" rx="12" fill="#fff" stroke="#E2DCF7" stroke-width="2"/>
+            <text x="210" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#3C3489" letter-spacing="1">BRAND IDENTITY</text>
+            <circle cx="195" cy="115" r="24" fill="#A99BE8"/>
+            <rect x="205" y="115" width="42" height="36" rx="5" fill="#F2A65A"/>
+            <path d="M168 155 L192 115 L216 155 Z" fill="#5FBF9F"/>
+          </g>
+          <g transform="rotate(-14 90 160)">
+            <rect x="40" y="120" width="26" height="80" rx="7" fill="#F0997B"/>
+            <rect x="62" y="116" width="26" height="80" rx="7" fill="#F5C542" transform="rotate(8 75 156)"/>
+            <rect x="84" y="114" width="26" height="80" rx="7" fill="#7FCBA4" transform="rotate(16 97 154)"/>
+            <rect x="104" y="116" width="26" height="80" rx="7" fill="#7BA6E8" transform="rotate(24 117 156)"/>
+            <rect x="122" y="120" width="26" height="80" rx="7" fill="#B08BE0" transform="rotate(32 135 160)"/>
+          </g>
+          <circle cx="60" cy="50" r="4" fill="#C9B8FF"/>
+          <circle cx="290" cy="210" r="5" fill="#F5C542"/>
+          <path d="M300 60 l4 8 8 4 -8 4 -4 8 -4 -8 -8 -4 8 -4 z" fill="#A99BE8"/>
+        </svg>
+      </div>
     </div>
   </div>
-  <div style="padding:24px 0 0;">
+
+  <div class="landing-body">
     <div class="notice-box">
       <strong>📌 안내</strong><br>
       응답 내용은 디자인 방향 설정과 변리사 상표 검토에 활용됩니다.
@@ -256,7 +358,7 @@
     </div>
 
     <div class="brand-msg">
-      <p class="msg-lead">"브랜드의 첫인상이 될 CI, 첫 단추가 가장 중요합니다."</p>
+      <p class="msg-lead">브랜드의 첫인상이 될 CI, 첫 단추가 가장 중요합니다.</p>
       <p class="msg-body">
         만족도 높은 디자인과 원활한 진행을 위해, 고객님의 브랜드 스토리를 들려주세요.
         지금 작성해 주시는 첫 설문지는 고객님이 머릿속으로 그리시는 브랜드의 방향성을
@@ -272,49 +374,49 @@
     <div class="process-title">🎨 CI 디자인 진행 프로세스</div>
     <div class="timeline">
       <div class="tl-item">
-        <div class="tl-badge who-customer">1</div>
+        <div class="tl-head"><div class="tl-badge who-customer">1</div><div class="tl-icon">📝</div></div>
         <div class="tl-body">
           <div class="tl-name">설문 작성 <span class="tl-who">고객</span></div>
           <div class="tl-desc">브랜드 정보 및 요구사항 작성</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-studio">2</div>
+        <div class="tl-head"><div class="tl-badge who-studio">2</div><div class="tl-icon">🔍</div></div>
         <div class="tl-body">
           <div class="tl-name">레퍼런스 조사 &amp; 제안 <span class="tl-who">디자인사</span></div>
           <div class="tl-desc">설문 기반의 맞춤형 레퍼런스 공유</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-customer">3</div>
+        <div class="tl-head"><div class="tl-badge who-customer">3</div><div class="tl-icon">💬</div></div>
         <div class="tl-body">
           <div class="tl-name">확인 및 피드백 <span class="tl-who">고객</span></div>
           <div class="tl-desc">방향성 검토 및 의견 전달</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-studio">4</div>
+        <div class="tl-head"><div class="tl-badge who-studio">4</div><div class="tl-icon">✒️</div></div>
         <div class="tl-body">
           <div class="tl-name">디자인 시안 제공 <span class="tl-who">디자인사</span></div>
           <div class="tl-desc">최종 엄선된 2개의 시안 제안</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-customer">5</div>
+        <div class="tl-head"><div class="tl-badge who-customer">5</div><div class="tl-icon">☑️</div></div>
         <div class="tl-body">
           <div class="tl-name">확인 및 피드백 <span class="tl-who">고객</span></div>
           <div class="tl-desc">시안 선택 및 수정 의견 전달</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-studio">6</div>
+        <div class="tl-head"><div class="tl-badge who-studio">6</div><div class="tl-icon">🎚️</div></div>
         <div class="tl-body">
           <div class="tl-name">수정 작업 1회 <span class="tl-who">디자인사</span></div>
           <div class="tl-desc">피드백 반영 후 최종 보완</div>
         </div>
       </div>
       <div class="tl-item">
-        <div class="tl-badge who-final">7</div>
+        <div class="tl-head"><div class="tl-badge who-final">7</div><div class="tl-icon">📥</div></div>
         <div class="tl-body">
           <div class="tl-name">최종 확정 <span class="tl-who">완료</span></div>
           <div class="tl-desc">원본 데이터 납품</div>
@@ -322,9 +424,32 @@
       </div>
     </div>
 
-    <p class="msg-closing">고객님의 소중한 브랜드 가치를 시각화하는 여정,<br>지금 설문으로 시작해 보세요!</p>
+    <div class="heart-card">
+      <div class="hc-left">
+        <div class="hc-icon">❤️</div>
+        <div class="hc-text">고객님의 소중한 브랜드 가치를<br class="mobile-br">시각화하는 여정,<br><strong>지금 설문으로 시작해 보세요!</strong></div>
+      </div>
+      <button class="cta hc-cta" id="landingCta" onclick="if(!directionLocked) goTo(1)">시작하기 →</button>
+    </div>
+
+    <div class="feature-cards">
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#E1F5EE;">🛡️</div>
+        <div class="fc-title" style="color:#0F6E56;">안전한 데이터 관리</div>
+        <div class="fc-desc">작성 내용은 안전하게 저장되고 비공개로 관리됩니다.</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#E8F0FB;">🕘</div>
+        <div class="fc-title" style="color:#1B5FA8;">임시 저장 지원</div>
+        <div class="fc-desc">작성 중에도 안전하게 저장되어 언제든 이어서 작성 가능해요.</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#FCEEE3;">✉️</div>
+        <div class="fc-title" style="color:#B45D14;">체계적인 이메일 소통</div>
+        <div class="fc-desc">모든 과정은 이메일로 기록되어 투명하게 관리됩니다.</div>
+      </div>
+    </div>
   </div>
-  <div class="bottom-bar"><button class="cta" id="landingCta" onclick="if(!directionLocked) goTo(1)">시작하기 →</button></div>
 </div>
 
 <!-- S1 기본정보 -->
