@@ -1,0 +1,1341 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>브랜드 진단 설문 — 플러스프레스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #3C3489; --accent-mid: #534AB7; --accent-soft: #EEEDFE;
+    --text: #1a1a18; --muted: #5F5E5A; --hint: #888780;
+    --bg: #faf9f6; --surface: #fff; --border: rgba(0,0,0,0.1);
+    --radius: 16px; --radius-sm: 10px;
+    --danger: #E24B4A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif; background: var(--bg); color: var(--text);
+    min-height: 100vh;
+  }
+  .screen { display: none; padding: 28px 20px 120px; animation: fadeUp .3s ease; max-width: 480px; margin: 0 auto; }
+  #screen-0 { max-width: none; padding: 0 0 60px; }
+
+  .progress-bar { position: sticky; top: 0; z-index: 100; background: var(--surface); padding: 14px 20px 0; border-bottom: 0.5px solid var(--border); }
+  .progress-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .back-btn { background: none; border: none; cursor: pointer; font-size: 14px; color: var(--muted); padding: 4px 0; }
+  .step-label { font-size: 13px; color: var(--hint); }
+  .track { height: 3px; background: var(--accent-soft); border-radius: 99px; }
+  .fill { height: 100%; background: var(--accent); border-radius: 99px; transition: width .4s cubic-bezier(.4,0,.2,1); }
+
+  .screen.active { display: block; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(10px);} to{opacity:1;transform:translateY(0);} }
+
+  .page-title { font-size: 23px; font-weight: 700; line-height: 1.3; margin-bottom: 6px; }
+  .page-sub { font-size: 14px; color: var(--muted); margin-bottom: 26px; }
+  .field-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 8px; display:flex; align-items:center; gap:6px; }
+  .req { color: var(--danger); font-size: 11px; }
+  .opt { color: var(--hint); font-size: 12px; font-weight: 400; }
+  .field { margin-bottom: 22px; }
+
+  input[type=text], input[type=url], textarea {
+    width: 100%; padding: 14px 16px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+    font-size: 16px; font-family: inherit; color: var(--text); background: var(--surface); outline: none;
+    transition: border-color .2s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  textarea { resize: none; height: 76px; }
+
+  .chip-group { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { padding: 8px 16px; border-radius: 99px; border: 1.5px solid var(--border); font-size: 14px; cursor: pointer; background: var(--surface); transition: all .2s; user-select: none; }
+  .chip.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .card-option { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 15px 16px; margin-bottom: 10px; cursor: pointer; background: var(--surface); transition: all .2s; position: relative; }
+  .card-option.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .card-check { position: absolute; top: 14px; right: 14px; width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--border); background: var(--surface); }
+  .card-option.selected .card-check { background: var(--accent); border-color: var(--accent); }
+  .card-check::after { content:''; width:6px; height:10px; border:2px solid transparent; border-right:2px solid #fff; border-bottom:2px solid #fff; transform: rotate(45deg) translate(-1px,-1px); display:none; margin:5px auto; }
+  .card-option.selected .card-check::after { display:block; }
+  .card-title { font-size: 15px; font-weight: 500; margin-bottom: 3px; }
+  .card-desc { font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  .img-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; }
+  .img-card { border: 1.5px solid var(--border); border-radius: var(--radius); padding: 12px; cursor: pointer; background: var(--surface); transition: all .2s; text-align: center; }
+  .img-card.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .img-card svg { width: 100%; height: 50px; }
+  .img-card .nm { font-size: 13px; font-weight: 500; margin-top: 8px; }
+  .img-card .ds { font-size: 11.5px; color: var(--hint); }
+
+  .slider-row { margin-bottom: 20px; }
+  .card-thumb { width: 100%; aspect-ratio: 16/7; object-fit: cover; border-radius: var(--radius-sm); margin-bottom: 12px; display: block; }
+  .grid-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 8px; }
+  .mood-thumb { width: 100%; aspect-ratio: 16/5; object-fit: cover; border-radius: 10px; display: block; margin-bottom: 10px; }
+
+  .slider-labels { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); margin-bottom: 8px; }
+  input[type=range] { width: 100%; }
+
+  /* 경쟁사 URL 리스트 */
+  .url-item { display: flex; gap: 8px; margin-bottom: 10px; }
+  .url-item input { flex: 1; }
+  .url-del { background: none; border: none; color: var(--hint); font-size: 20px; cursor: pointer; width: 40px; }
+  .add-url-btn {
+    width: 100%; padding: 12px; border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
+    background: none; color: var(--muted); font-size: 14px; cursor: pointer; font-family: inherit;
+  }
+  .add-url-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* 레퍼런스 탭 */
+  .ref-tabs { display: flex; gap: 6px; margin-bottom: 14px; background: #f0ede8; padding: 4px; border-radius: 99px; }
+  .ref-tab { flex: 1; text-align: center; padding: 9px; border-radius: 99px; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--muted); }
+  .ref-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+
+  .upload-zone {
+    border: 1.5px dashed var(--border); border-radius: var(--radius); padding: 28px 16px;
+    text-align: center; cursor: pointer; transition: all .2s;
+  }
+  .upload-zone.drag { border-color: var(--accent); background: var(--accent-soft); }
+  .upload-zone .ic { font-size: 28px; margin-bottom: 8px; }
+  .upload-zone .tt { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+  .upload-zone .sb { font-size: 12px; color: var(--hint); }
+
+  .thumb-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 12px; }
+  .thumb { position: relative; border-radius: 10px; overflow: hidden; aspect-ratio: 1; background: #f0ede8; }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; }
+  .thumb .rm { position: absolute; top: 4px; right: 4px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,0.55); color: #fff; border: none; font-size: 14px; cursor: pointer; }
+  .thumb .bar { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: rgba(255,255,255,0.4); }
+  .thumb .bar-fill { height: 100%; background: var(--accent); width: 0%; transition: width .2s; }
+
+  .bottom-bar { position: fixed; z-index: 60; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; padding: 20px 20px 32px; background: var(--bg); box-shadow: 0 -12px 24px -8px rgba(0,0,0,0.06); }
+  .cta { width: 100%; padding: 17px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); font-size: 17px; font-weight: 700; font-family: inherit; cursor: pointer; transition: all .15s; box-shadow: 0 4px 20px rgba(60,52,137,0.3); }
+  .cta:disabled { background: var(--hint); box-shadow: none; cursor: not-allowed; }
+  .cta:not(:disabled):active { transform: scale(0.98); }
+
+  .landing-hero { background: linear-gradient(160deg, #46399B, #3C3489 55%, #322B77); color: #fff; border-radius: 0 0 24px 24px; }
+  .hero-inner { max-width: 480px; margin: 0 auto; padding: 42px 20px 28px; text-align: center; }
+  .hero-art { display: none; }
+  .landing-badge { display: inline-block; background: rgba(255,255,255,0.18); padding: 5px 16px; border-radius: 99px; font-size: 12px; margin-bottom: 16px; letter-spacing: 0.05em; font-weight: 500; }
+  .landing-title { font-size: 26px; font-weight: 700; line-height: 1.35; margin-bottom: 8px; }
+  .landing-title em { font-style: normal; color: #C9B8FF; }
+  .landing-sub { font-size: 14px; opacity: 0.85; line-height: 1.6; }
+  .info-chips { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 20px; }
+  .info-chip { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); padding: 11px 8px; border-radius: 14px; text-align: center; }
+  .info-chip .ic-t { font-size: 13px; font-weight: 700; }
+  .info-chip .ic-s { font-size: 11px; opacity: 0.75; margin-top: 3px; line-height: 1.4; }
+
+  .landing-body { max-width: 480px; margin: 0 auto; padding: 24px 20px 0; }
+  .notice-box { background: #FAEEDA; border-radius: var(--radius-sm); padding: 14px 16px; font-size: 13px; color: var(--muted); line-height: 1.6; }
+  .notice-box strong { color: #854F0B; }
+
+  /* 하단 안내 카드 + CTA */
+  .heart-card {
+    background: var(--accent-soft); border-radius: var(--radius); padding: 20px;
+    margin-top: 28px; text-align: center;
+  }
+  .hc-left { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .hc-icon { width: 52px; height: 52px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; font-size: 24px; box-shadow: 0 4px 14px rgba(60,52,137,0.14); }
+  .hc-text { font-size: 14.5px; line-height: 1.6; color: var(--text); }
+  .hc-text strong { color: var(--accent); }
+  .hc-cta { margin-top: 16px; }
+
+  .feature-cards { display: grid; gap: 10px; margin-top: 24px; }
+  .feature-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 16px; }
+  .fc-icon { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 19px; margin-bottom: 10px; }
+  .fc-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; }
+  .fc-desc { font-size: 12.5px; color: var(--muted); line-height: 1.55; }
+
+  .done-wrap { text-align: center; padding: 60px 20px; }
+  .done-circle { width: 80px; height: 80px; border-radius: 50%; background: var(--accent); color:#fff; font-size: 36px; display:flex; align-items:center; justify-content:center; margin: 0 auto 24px; }
+  .done-title { font-size: 23px; font-weight: 700; margin-bottom: 8px; }
+  .done-sub { font-size: 15px; color: var(--muted); line-height: 1.6; }
+
+  /* ── 브랜드 안내문 (A안) ── */
+  .brand-msg { margin-top: 26px; text-align: center; }
+  .msg-lead { font-size: 16px; font-weight: 700; color: var(--accent-mid); margin-bottom: 14px; line-height: 1.55; position: relative; display: inline-block; padding: 0 18px; }
+  .msg-lead::before { content: '“'; position: absolute; left: -2px; top: -6px; font-size: 26px; color: #C9B8FF; font-family: Georgia, serif; }
+  .msg-lead::after { content: '”'; position: absolute; right: -2px; top: -6px; font-size: 26px; color: #C9B8FF; font-family: Georgia, serif; }
+  .msg-body { font-size: 13.5px; color: var(--muted); line-height: 1.8; margin-bottom: 12px; }
+  .msg-body strong { color: var(--accent-mid); }
+  .process-title { font-size: 15.5px; font-weight: 700; margin: 30px 0 18px; text-align: center; }
+
+  /* ── 진행 프로세스 타임라인 (모바일: 세로) ── */
+  .timeline { position: relative; padding-left: 2px; }
+  .tl-item { display: flex; gap: 12px; position: relative; padding-bottom: 24px; }
+  .tl-item:last-child { padding-bottom: 0; }
+  .tl-item::before {
+    content: ''; position: absolute; left: 17px; top: 38px; bottom: -4px;
+    width: 2px; background: var(--border);
+  }
+  .tl-item:last-child::before { display: none; }
+  .tl-head { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+  .tl-badge {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: 700; color: #fff; z-index: 1;
+  }
+  .tl-badge.who-customer { background: var(--accent-mid); }
+  .tl-badge.who-studio { background: #0F6E56; }
+  .tl-badge.who-final { background: #D97B29; }
+  .tl-icon {
+    width: 44px; height: 44px; border-radius: 13px; background: var(--surface);
+    border: 1px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 20px;
+  }
+  .tl-body { padding-top: 3px; flex: 1; }
+  .tl-name { font-size: 14px; font-weight: 700; display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+  .tl-who {
+    font-size: 11px; font-weight: 500; color: var(--hint);
+    padding: 2px 9px; border-radius: 99px; background: #f0ede8;
+  }
+  .tl-desc { font-size: 12.5px; color: var(--muted); margin-top: 4px; line-height: 1.55; }
+
+  /* ══════════ PC (900px 이상) ══════════ */
+  @media (min-width: 900px) {
+    .landing-hero { background: linear-gradient(150deg, #EFECFF, #F4F1FE 55%, #EDE7FC); color: var(--text); border-radius: 0; }
+    .hero-inner {
+      max-width: 1080px; padding: 56px 32px 48px;
+      display: grid; grid-template-columns: 1.25fr 1fr; align-items: center; gap: 32px;
+      text-align: left;
+    }
+    .hero-art { display: block; }
+    .hero-art svg { width: 100%; max-width: 380px; }
+    .landing-badge { background: var(--accent); color: #fff; }
+    .landing-title { font-size: 38px; }
+    .landing-title em { color: var(--accent-mid); }
+    .landing-sub { color: var(--muted); opacity: 1; font-size: 15px; }
+    .info-chips { grid-template-columns: repeat(3, minmax(0, 180px)); margin-top: 26px; }
+    .info-chip { background: var(--surface); border: 1px solid var(--border); color: var(--text); text-align: left; padding: 12px 14px; }
+    .info-chip .ic-s { color: var(--hint); opacity: 1; }
+
+    .landing-body { max-width: 1000px; padding: 36px 32px 0; }
+    .brand-msg { max-width: 720px; margin: 34px auto 0; }
+    .msg-lead { font-size: 19px; }
+    .msg-body { font-size: 14.5px; }
+
+    /* 프로세스: 가로 7단계 */
+    .timeline { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; padding-left: 0; margin-top: 6px; }
+    .tl-item { flex-direction: column; align-items: center; text-align: center; padding-bottom: 0; gap: 10px; }
+    .tl-item::before {
+      left: calc(50% + 30px); right: calc(-50% + 30px); top: 21px;
+      width: auto; height: 2px; bottom: auto;
+    }
+    .tl-head { flex-direction: column; gap: 8px; }
+    .tl-icon { width: 56px; height: 56px; border-radius: 50%; font-size: 24px; }
+    .tl-badge { width: 26px; height: 26px; font-size: 12px; }
+    .tl-name { justify-content: center; font-size: 13.5px; }
+    .tl-desc { font-size: 12px; }
+
+    .heart-card { display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 22px 26px; margin-top: 36px; }
+    .hc-left { flex-direction: row; gap: 16px; align-items: center; }
+    .hc-cta { margin-top: 0; width: auto; padding: 15px 36px; }
+    .mobile-br { display: none; }
+
+    .feature-cards { grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 28px; }
+  }
+
+  /* ── 이어서 작성 배너 ── */
+  .resume-banner {
+    display: none; background: var(--accent-soft); border: 1.5px solid var(--accent-mid);
+    border-radius: var(--radius); padding: 16px; margin-top: 20px; gap: 10px;
+  }
+  .resume-banner.show { display: flex; flex-direction: column; }
+  .rb-top { display: flex; align-items: flex-start; gap: 10px; }
+  .rb-icon { font-size: 20px; }
+  .rb-text { font-size: 13.5px; color: var(--text); line-height: 1.5; }
+  .rb-text strong { color: var(--accent); }
+  .rb-actions { display: flex; gap: 8px; margin-top: 6px; }
+  .rb-btn {
+    flex: 1; padding: 10px; border-radius: 10px; font-size: 13px; font-weight: 700;
+    font-family: inherit; cursor: pointer; border: 1.5px solid var(--accent-mid);
+    background: var(--surface); color: var(--accent);
+  }
+  .rb-btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* ── 색상 리스트 (이미지2 참고) ── */
+  .color-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; }
+  .color-row .card-title { margin-bottom: 0; }
+  .color-dot { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.08); }
+  .color-row .card-check { display: none; }
+  .color-row.selected { border-color: var(--accent); background: var(--accent-soft); }
+  .color-row.selected .card-title { color: var(--accent); font-weight: 700; }
+
+  /* ── 업종 검색 ── */
+  .chip.hide { display: none; }
+
+  /* ── 결과 확인 버튼 ── */
+  .result-link {
+    display: block; text-align: center; text-decoration: none;
+    width: 100%; padding: 16px; margin-top: 14px;
+    background: var(--surface); color: var(--accent);
+    border: 1.5px solid var(--accent); border-radius: var(--radius);
+    font-size: 15px; font-weight: 700; box-sizing: border-box;
+  }
+  .result-hint { font-size: 12.5px; color: var(--hint); margin-top: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar" style="display:none">
+  <div class="progress-top">
+    <button class="back-btn" onclick="goBack()">← 이전</button>
+    <span class="step-label" id="stepLabel"></span>
+  </div>
+  <div class="track"><div class="fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- S0 랜딩 -->
+<div class="screen active" id="screen-0">
+  <div class="landing-hero">
+    <div class="hero-inner">
+      <div class="hero-text">
+        <div class="landing-badge">BRAND IDENTITY 진단</div>
+        <div class="landing-title">우리 브랜드,<br>어떤 <em>얼굴</em>이 좋을까요?</div>
+        <div class="landing-sub">BI·CI 제작 전 방향을 정하는 9가지 질문 🎨</div>
+        <div class="info-chips">
+          <div class="info-chip"><div class="ic-t">⏱ 약 5분</div><div class="ic-s">빠르고 간편해요</div></div>
+          <div class="info-chip"><div class="ic-t">🖼 이미지 첨부</div><div class="ic-s">참고 이미지를 올려보세요</div></div>
+          <div class="info-chip"><div class="ic-t">🔒 상표출원 활용</div><div class="ic-s">결과는 안전하게 보관됩니다</div></div>
+        </div>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <svg viewBox="0 0 320 240">
+          <g transform="rotate(8 210 120)">
+            <rect x="150" y="40" width="120" height="150" rx="12" fill="#fff" stroke="#E2DCF7" stroke-width="2"/>
+            <text x="210" y="68" text-anchor="middle" font-size="11" font-weight="700" fill="#3C3489" letter-spacing="1">BRAND IDENTITY</text>
+            <circle cx="195" cy="115" r="24" fill="#A99BE8"/>
+            <rect x="205" y="115" width="42" height="36" rx="5" fill="#F2A65A"/>
+            <path d="M168 155 L192 115 L216 155 Z" fill="#5FBF9F"/>
+          </g>
+          <g transform="rotate(-14 90 160)">
+            <rect x="40" y="120" width="26" height="80" rx="7" fill="#F0997B"/>
+            <rect x="62" y="116" width="26" height="80" rx="7" fill="#F5C542" transform="rotate(8 75 156)"/>
+            <rect x="84" y="114" width="26" height="80" rx="7" fill="#7FCBA4" transform="rotate(16 97 154)"/>
+            <rect x="104" y="116" width="26" height="80" rx="7" fill="#7BA6E8" transform="rotate(24 117 156)"/>
+            <rect x="122" y="120" width="26" height="80" rx="7" fill="#B08BE0" transform="rotate(32 135 160)"/>
+          </g>
+          <circle cx="60" cy="50" r="4" fill="#C9B8FF"/>
+          <circle cx="290" cy="210" r="5" fill="#F5C542"/>
+          <path d="M300 60 l4 8 8 4 -8 4 -4 8 -4 -8 -8 -4 8 -4 z" fill="#A99BE8"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="landing-body">
+    <div class="notice-box">
+      <strong>📌 안내</strong><br>
+      응답 내용은 디자인 방향 설정과 변리사 상표 검토에 활용됩니다.
+      작성 중인 내용은 이 브라우저에 자동으로 임시 저장되니, 실수로 새로고침해도 이어서 작성하실 수 있어요.
+      (첨부한 이미지는 저장되지 않으니 제출 전 다시 확인해 주세요)
+    </div>
+
+    <div id="resumeBanner" class="resume-banner">
+      <div class="rb-top">
+        <div class="rb-icon">📝</div>
+        <div class="rb-text"><strong>작성 중인 설문이 있어요.</strong><br>이어서 작성하시겠어요?</div>
+      </div>
+      <div class="rb-actions">
+        <button class="rb-btn primary" onclick="resumeDraft()">이어서 작성하기</button>
+        <button class="rb-btn" onclick="discardDraft()">새로 시작하기</button>
+      </div>
+    </div>
+
+    <div id="prevSubmitBanner" class="resume-banner">
+      <div class="rb-top">
+        <div class="rb-icon">✅</div>
+        <div class="rb-text"><strong>이미 제출하신 응답이 있어요.</strong><br>내용을 수정하시겠어요?</div>
+      </div>
+      <div class="rb-actions">
+        <button class="rb-btn primary" onclick="loadPrevSubmission()">이전 응답 불러와 수정하기</button>
+        <button class="rb-btn" onclick="document.getElementById('prevSubmitBanner').classList.remove('show')">새로 작성하기</button>
+      </div>
+    </div>
+
+    <div id="lockedBanner" class="resume-banner" style="background:#FAEEDA; border-color:#854F0B;">
+      <div class="rb-top">
+        <div class="rb-icon">🔒</div>
+        <div class="rb-text" style="color:#854F0B;"><strong>디자인 방향서가 이미 업로드되어 수정이 불가능합니다.</strong><br>내용을 바꾸고 싶으시면 담당자에게 이메일 또는 전화로 문의해 주세요.</div>
+      </div>
+    </div>
+
+    <div class="brand-msg">
+      <p class="msg-lead">브랜드의 첫인상이 될 CI, 첫 단추가 가장 중요합니다.</p>
+      <p class="msg-body">
+        만족도 높은 디자인과 원활한 진행을 위해, 고객님의 브랜드 스토리를 들려주세요.
+        지금 작성해 주시는 첫 설문지는 고객님이 머릿속으로 그리시는 브랜드의 방향성을
+        정확히 파악하는 가장 중요한 기준이 됩니다. 구체적이고 정성스럽게 작성해 주실수록
+        더욱 완성도 높은 결과물을 만나보실 수 있습니다.
+      </p>
+      <p class="msg-body">
+        본 프로젝트는 불필요한 오해를 줄이고 기록을 남기기 위해 모든 소통을
+        <strong>이메일로 진행</strong>하며, 다음과 같은 체계적인 프로세스로 움직입니다.
+      </p>
+    </div>
+
+    <div class="process-title">🎨 CI 디자인 진행 프로세스</div>
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-customer">1</div><div class="tl-icon">📝</div></div>
+        <div class="tl-body">
+          <div class="tl-name">설문 작성 <span class="tl-who">고객</span></div>
+          <div class="tl-desc">브랜드 정보 및 요구사항 작성</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-studio">2</div><div class="tl-icon">🔍</div></div>
+        <div class="tl-body">
+          <div class="tl-name">레퍼런스 조사 &amp; 제안 <span class="tl-who">디자인사</span></div>
+          <div class="tl-desc">설문 기반의 맞춤형 레퍼런스 공유</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-customer">3</div><div class="tl-icon">💬</div></div>
+        <div class="tl-body">
+          <div class="tl-name">확인 및 피드백 <span class="tl-who">고객</span></div>
+          <div class="tl-desc">방향성 검토 및 의견 전달</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-studio">4</div><div class="tl-icon">✒️</div></div>
+        <div class="tl-body">
+          <div class="tl-name">디자인 시안 제공 <span class="tl-who">디자인사</span></div>
+          <div class="tl-desc">최종 엄선된 2개의 시안 제안</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-customer">5</div><div class="tl-icon">☑️</div></div>
+        <div class="tl-body">
+          <div class="tl-name">확인 및 피드백 <span class="tl-who">고객</span></div>
+          <div class="tl-desc">시안 선택 및 수정 의견 전달</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-studio">6</div><div class="tl-icon">🎚️</div></div>
+        <div class="tl-body">
+          <div class="tl-name">수정 작업 1회 <span class="tl-who">디자인사</span></div>
+          <div class="tl-desc">피드백 반영 후 최종 보완</div>
+        </div>
+      </div>
+      <div class="tl-item">
+        <div class="tl-head"><div class="tl-badge who-final">7</div><div class="tl-icon">📥</div></div>
+        <div class="tl-body">
+          <div class="tl-name">최종 확정 <span class="tl-who">완료</span></div>
+          <div class="tl-desc">원본 데이터 납품</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="heart-card">
+      <div class="hc-left">
+        <div class="hc-icon">❤️</div>
+        <div class="hc-text">고객님의 소중한 브랜드 가치를<br class="mobile-br">시각화하는 여정,<br><strong>지금 설문으로 시작해 보세요!</strong></div>
+      </div>
+      <button class="cta hc-cta" id="landingCta" onclick="if(!directionLocked) goTo(1)">시작하기 →</button>
+    </div>
+
+    <div class="feature-cards">
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#E1F5EE;">🛡️</div>
+        <div class="fc-title" style="color:#0F6E56;">안전한 데이터 관리</div>
+        <div class="fc-desc">작성 내용은 안전하게 저장되고 비공개로 관리됩니다.</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#E8F0FB;">🕘</div>
+        <div class="fc-title" style="color:#1B5FA8;">임시 저장 지원</div>
+        <div class="fc-desc">작성 중에도 안전하게 저장되어 언제든 이어서 작성 가능해요.</div>
+      </div>
+      <div class="feature-card">
+        <div class="fc-icon" style="background:#FCEEE3;">✉️</div>
+        <div class="fc-title" style="color:#B45D14;">체계적인 이메일 소통</div>
+        <div class="fc-desc">모든 과정은 이메일로 기록되어 투명하게 관리됩니다.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- S1 기본정보 -->
+<div class="screen" id="screen-1">
+  <div class="page-title">기본 정보를<br>알려주세요</div>
+  <div class="page-sub">브랜드의 기본 뼈대예요</div>
+
+  <div class="field">
+    <div class="field-label">브랜드명 (국문) <span class="req">필수</span></div>
+    <input type="text" id="brandKo" placeholder="예) 아트에이블" oninput="validate(1)">
+  </div>
+  <div class="field">
+    <div class="field-label">브랜드명 (영문) <span class="opt">선택</span></div>
+    <input type="text" id="brandEn" placeholder="예) Artable">
+  </div>
+  <div class="field">
+    <div class="field-label">슬로건 <span class="opt">선택</span></div>
+    <input type="text" id="slogan" placeholder="있다면 입력해 주세요">
+  </div>
+  <div class="field">
+    <div class="field-label">업종 <span class="req">필수</span></div>
+    <div class="chip-group" id="industryGroup">
+      <div class="chip" onclick="toggleChip(this,'industry',1)">카페·베이커리</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">외식업·요식업</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">리테일·유통</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">제조·생산</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">뷰티·헤어·마사지</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">헬스·피트니스</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">육아·교육</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">공방·수공예</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">예술·엔터테인먼트·음악</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">IT·소프트웨어</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">IT·엔지니어링</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">비즈니스·컨설팅</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">금융·보험</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">의료·헬스케어</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">법률·정치</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">마케팅·커뮤니케이션</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">부동산</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">종교·영성</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">반려동물</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">자동차·운송</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">건설·시공</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">홈리모델링·청소</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">여행·숙박</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">기념일·특별행사</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">농수산·식품제조</div>
+      <div class="chip" onclick="toggleChip(this,'industry',1)">기타</div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-label">구체적인 사업내용 <span class="opt">선택</span></div>
+    <textarea id="bizDesc" placeholder="어떤 제품·서비스인지 한두 줄로 알려주세요"></textarea>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta1" onclick="goTo(2)" disabled>다음</button></div>
+</div>
+
+<!-- S2 출원형태 -->
+<div class="screen" id="screen-2">
+  <div class="page-title">상표 출원 형태를<br>알려주세요</div>
+  <div class="page-sub">디자인 방향과 등록 전략이 여기서 갈려요</div>
+
+  <div id="markGroup">
+    <div class="card-option" onclick="selectCard(this,'markType',2)">
+      <img src="img/1.jpg" alt="문자상표 예시" class="card-thumb">
+      <div class="card-check"></div>
+      <div class="card-title">문자상표</div>
+      <div class="card-desc">브랜드명 텍스트 자체를 등록 — 서체·워드마크 중심</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'markType',2)">
+      <img src="img/2.jpg" alt="도형상표 예시" class="card-thumb">
+      <div class="card-check"></div>
+      <div class="card-title">도형상표</div>
+      <div class="card-desc">심볼·아이콘만 등록 — 독창적 형태가 중요</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'markType',2)">
+      <img src="img/3.jpg" alt="복합상표 예시" class="card-thumb">
+      <div class="card-check"></div>
+      <div class="card-title">복합상표</div>
+      <div class="card-desc">문자+도형 결합 — 가장 일반적인 형태</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'markType',2)">
+      <div class="card-check"></div>
+      <div class="card-title">잘 모르겠어요</div>
+      <div class="card-desc">상담을 통해 정하고 싶어요</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta2" onclick="goTo(3)" disabled>다음</button></div>
+</div>
+
+<!-- S3 로고유형 + 모티프 -->
+<div class="screen" id="screen-3">
+  <div class="page-title">로고 유형과<br>모티프를 알려주세요</div>
+  <div class="page-sub">브랜드를 표현할 이미지의 뼈대예요</div>
+
+  <div class="field">
+    <div class="field-label">선호하는 로고 유형 <span class="req">필수</span></div>
+    <div class="img-grid" id="logoGrid">
+      <div class="img-card" onclick="selectCard(this,'logoType',3,'img')">
+        <img src="img/15.jpg" alt="워드마크 예시" class="grid-thumb">
+        <div class="nm">워드마크</div><div class="ds">브랜드명 자체가 로고</div>
+      </div>
+      <div class="img-card" onclick="selectCard(this,'logoType',3,'img')">
+        <img src="img/16.jpg" alt="이니셜형 예시" class="grid-thumb">
+        <div class="nm">이니셜형</div><div class="ds">머리글자 강조</div>
+      </div>
+      <div class="img-card" onclick="selectCard(this,'logoType',3,'img')">
+        <img src="img/17.jpg" alt="심볼과 로고타입 조합 예시" class="grid-thumb">
+        <div class="nm">심볼+로고타입</div><div class="ds">가장 범용적</div>
+      </div>
+      <div class="img-card" onclick="selectCard(this,'logoType',3,'img')">
+        <img src="img/18.jpg" alt="엠블럼 예시" class="grid-thumb">
+        <div class="nm">엠블럼</div><div class="ds">전통·수공예 감성</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">떠오르는 모티프 키워드 <span class="opt">선택 · 여러 개 가능</span></div>
+    <input type="text" id="motif" placeholder="예) 붓, 물결, 산 — 쉼표로 구분">
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta3" onclick="goTo(4)" disabled>다음</button></div>
+</div>
+
+<!-- S4 스타일필터+무드 -->
+<div class="screen" id="screen-4">
+  <div class="page-title">브랜드 무드를<br>설정해 주세요</div>
+  <div class="page-sub">카드와 슬라이더로 느낌을 정해요</div>
+
+  <div class="field">
+    <div class="field-label">스타일 필터 <span class="req">필수</span></div>
+    <div class="img-grid" id="styleGroup">
+      <div class="img-card" onclick="toggleChip(this,'style',4,'img')">
+        <img src="img/7.jpg" alt="미니멀 예시" class="grid-thumb">
+        <div class="nm">미니멀</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'style',4,'img')">
+        <img src="img/8.jpg" alt="볼드 예시" class="grid-thumb">
+        <div class="nm">볼드</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'style',4,'img')">
+        <img src="img/9.jpg" alt="엘레강스 예시" class="grid-thumb">
+        <div class="nm">엘레강스</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'style',4,'img')">
+        <img src="img/10.jpg" alt="오가닉 예시" class="grid-thumb">
+        <div class="nm">오가닉</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field" style="margin-top:28px;">
+    <div class="field-label">무드 조절</div>
+    <div class="slider-row">
+      <img src="img/4.jpg" alt="클래식 모던 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
+      <div class="slider-labels"><span>클래식</span><span>모던</span></div>
+      <input type="range" min="0" max="100" value="50" class="mood">
+    </div>
+    <div class="slider-row">
+      <img src="img/5.jpg" alt="친근함 고급스러움 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
+      <div class="slider-labels"><span>친근함</span><span>고급스러움</span></div>
+      <input type="range" min="0" max="100" value="50" class="mood">
+    </div>
+    <div class="slider-row">
+      <img src="img/6.jpg" alt="부드러움 강렬함 예시" class="mood-thumb" style="width:100%; aspect-ratio:11/6;">
+      <div class="slider-labels"><span>부드러움</span><span>강렬함</span></div>
+      <input type="range" min="0" max="100" value="50" class="mood">
+    </div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta4" onclick="goTo(5)" disabled>다음</button></div>
+</div>
+
+<!-- S5 느낌문장 -->
+<div class="screen" id="screen-5">
+  <div class="page-title">고객이 우리 로고를<br>보면 어떤 생각이 들면 좋을까요?</div>
+  <div class="page-sub">가장 가까운 느낌 1~2개를 골라주세요</div>
+
+  <div class="chip-group" id="feelGroup" style="flex-direction:column; align-items:stretch;">
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"믿고 맡길 수 있겠다"</div>
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"세련되고 감각적이다"</div>
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"편안하고 다정하다"</div>
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"전문적이고 신뢰감 있다"</div>
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"새롭고 독창적이다"</div>
+    <div class="chip" onclick="toggleMulti(this,'feeling',5,2)" style="text-align:left;">"전통있고 진지하다"</div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta5" onclick="goTo(6)" disabled>다음</button></div>
+</div>
+
+<!-- S6 컬러+서체 -->
+<div class="screen" id="screen-6">
+  <div class="page-title">컬러와 서체<br>느낌을 골라주세요</div>
+  <div class="page-sub">복수 선택 가능해요</div>
+
+  <div class="field">
+    <div class="field-label">컬러 방향 <span class="req">필수</span></div>
+    <div class="img-grid" id="colorGrid">
+      <div class="img-card" onclick="toggleMulti(this,'color',6,3,'img')">
+        <svg viewBox="0 0 100 30"><rect width="34" height="30" fill="#D85A30"/><rect x="34" width="33" height="30" fill="#EF9F27"/><rect x="67" width="33" height="30" fill="#F5C4B3"/></svg>
+        <div class="nm">웜톤</div>
+      </div>
+      <div class="img-card" onclick="toggleMulti(this,'color',6,3,'img')">
+        <svg viewBox="0 0 100 30"><rect width="34" height="30" fill="#185FA5"/><rect x="34" width="33" height="30" fill="#378ADD"/><rect x="67" width="33" height="30" fill="#B5D4F4"/></svg>
+        <div class="nm">쿨톤</div>
+      </div>
+      <div class="img-card" onclick="toggleMulti(this,'color',6,3,'img')">
+        <svg viewBox="0 0 100 30"><rect width="34" height="30" fill="#F4C0D1"/><rect x="34" width="33" height="30" fill="#CECBF6"/><rect x="67" width="33" height="30" fill="#9FE1CB"/></svg>
+        <div class="nm">파스텔</div>
+      </div>
+      <div class="img-card" onclick="toggleMulti(this,'color',6,3,'img')">
+        <svg viewBox="0 0 100 30"><rect width="34" height="30" fill="#712B13"/><rect x="34" width="33" height="30" fill="#BA7517"/><rect x="67" width="33" height="30" fill="#D3D1C7"/></svg>
+        <div class="nm">어스톤</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">가장 선호하는 색상 <span class="opt">선택 · 하나만 골라주세요</span></div>
+    <div id="colorPrefGroup">
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#3B6FD4;"></span>
+        <div class="card-title">블루 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#8B5FD4;"></span>
+        <div class="card-title">퍼플 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#E27CAE;"></span>
+        <div class="card-title">핑크 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#3F9D5C;"></span>
+        <div class="card-title">그린 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#E8C93B;"></span>
+        <div class="card-title">옐로우 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#EA9A3E;"></span>
+        <div class="card-title">오렌지 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#E0524F;"></span>
+        <div class="card-title">레드 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:#8A7A5C;"></span>
+        <div class="card-title">브라운·뉴트럴 계열</div>
+      </div>
+      <div class="card-option color-row" onclick="selectCard(this,'colorPref',6)">
+        <span class="color-dot" style="background:linear-gradient(135deg,#E24B4A,#3C3489,#0F6E56,#EF9F27);"></span>
+        <div class="card-title">추천해 주세요 ✨</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="field">
+    <div class="field-label">서체 느낌 <span class="req">필수</span></div>
+    <div class="img-grid" id="fontGroup">
+      <div class="img-card" onclick="toggleChip(this,'font',6,'img')">
+        <img src="img/11.jpg" alt="세리프 예시" class="grid-thumb">
+        <div class="nm">세리프</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'font',6,'img')">
+        <img src="img/12.jpg" alt="산세리프 예시" class="grid-thumb">
+        <div class="nm">산세리프</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'font',6,'img')">
+        <img src="img/13.jpg" alt="라운드 예시" class="grid-thumb">
+        <div class="nm">라운드</div>
+      </div>
+      <div class="img-card" onclick="toggleChip(this,'font',6,'img')">
+        <img src="img/14.jpg" alt="캘리그라피 예시" class="grid-thumb">
+        <div class="nm">캘리그라피</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta6" onclick="goTo(7)" disabled>다음</button></div>
+</div>
+
+<!-- S7 경쟁사 + 레퍼런스 (신규) -->
+<div class="screen" id="screen-7">
+  <div class="page-title">경쟁사와<br>레퍼런스를 알려주세요</div>
+  <div class="page-sub">비교 대상이 있으면 방향을 훨씬 빠르게 잡을 수 있어요</div>
+
+  <div class="field">
+    <div class="field-label">경쟁사로 생각하는 곳 <span class="opt">선택 · 최대 3개</span></div>
+    <div id="compList">
+      <div class="url-item">
+        <input type="url" class="comp-url" placeholder="https://example.com">
+        <button class="url-del" onclick="removeUrl(this)">×</button>
+      </div>
+    </div>
+    <button class="add-url-btn" id="addUrlBtn" onclick="addUrl()">+ 경쟁사 추가</button>
+  </div>
+
+  <div class="field" style="margin-top:28px;">
+    <div class="field-label">좋아하는 디자인 레퍼런스 <span class="opt">선택</span></div>
+    <div class="ref-tabs">
+      <div class="ref-tab active" onclick="switchRef('url')">URL 입력</div>
+      <div class="ref-tab" onclick="switchRef('img')">이미지 업로드</div>
+    </div>
+
+    <div id="refUrlPane">
+      <input type="url" id="refUrl" placeholder="https://... (로고·디자인 참고 링크)">
+    </div>
+
+    <div id="refImgPane" style="display:none">
+      <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="ic">📎</div>
+        <div class="tt">이미지를 올려주세요</div>
+        <div class="sb">클릭 또는 드래그 · 최대 3장 · 장당 5MB</div>
+      </div>
+      <input type="file" id="fileInput" accept="image/*" multiple style="display:none" onchange="handleFiles(this.files)">
+      <div class="thumb-grid" id="thumbGrid"></div>
+    </div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" onclick="goTo(8)">다음</button></div>
+</div>
+
+<!-- S8 신경써주세요 -->
+<div class="screen" id="screen-8">
+  <div class="page-title">특별히<br>신경 써야 할 부분은요?</div>
+  <div class="page-sub">가장 중요한 것 하나만 골라주세요</div>
+
+  <div id="careGroup">
+    <div class="card-option" onclick="selectCard(this,'care',8)">
+      <div class="card-check"></div>
+      <div class="card-title">간판 시인성</div>
+      <div class="card-desc">멀리서도 잘 보여야 해요</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'care',8)">
+      <div class="card-check"></div>
+      <div class="card-title">소형 인쇄 선명도</div>
+      <div class="card-desc">명함·라벨 등 작은 사이즈에서도 또렷해야 해요</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'care',8)">
+      <div class="card-check"></div>
+      <div class="card-title">상표등록 통과 최우선</div>
+      <div class="card-desc">디자인보다 등록 가능성이 먼저예요</div>
+    </div>
+    <div class="card-option" onclick="selectCard(this,'care',8)">
+      <div class="card-check"></div>
+      <div class="card-title">SNS 프로필 최적화</div>
+      <div class="card-desc">인스타그램 등에서 예뻐 보여야 해요</div>
+    </div>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="cta8" onclick="goTo(9)" disabled>다음</button></div>
+</div>
+
+<!-- S9 활용처+일정+예산+제출 -->
+<div class="screen" id="screen-9">
+  <div class="page-title">마지막으로<br>알려주세요</div>
+  <div class="page-sub">활용처와 일정 정보예요</div>
+
+  <div class="field">
+    <div class="field-label">활용처 <span class="req">필수</span></div>
+    <div class="chip-group" id="usageGroup">
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">명함</div>
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">간판</div>
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">패키지</div>
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">온라인</div>
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">굿즈</div>
+      <div class="chip" onclick="toggleMulti(this,'usage',9)">차량</div>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-label">연락처 <span class="req">필수</span></div>
+    <input type="text" id="phone" placeholder="010-0000-0000" oninput="fmtPhone(this)">
+  </div>
+  <div class="field">
+    <div class="field-label">기타 요청사항 <span class="opt">선택</span></div>
+    <textarea id="etc" placeholder="자유롭게 남겨주세요"></textarea>
+  </div>
+
+  <div class="bottom-bar"><button class="cta" id="ctaFinal" onclick="submit()" disabled>제출하기</button></div>
+</div>
+
+<!-- 완료 -->
+<div class="screen" id="screen-10">
+  <div class="done-wrap">
+    <div class="done-circle">✓</div>
+    <div class="done-title">응답이 접수됐어요!</div>
+    <div class="done-sub">담당 디자이너가 검토 후<br>방향서를 준비해 드릴게요</div>
+    <div id="resultLinkBox" style="margin-top:28px; text-align:left;"></div>
+  </div>
+</div>
+
+<script>
+const state = {
+  brandKo:'', brandEn:'', slogan:'', industry:'', bizDesc:'',
+  markType:'', logoType:'', motif:'', style:[], mood:[],
+  feeling:[], color:[], colorPref:'', font:'', care:'', usage:[], phone:'', etc:'',
+  competitors:[], refUrl:'', refImages:[]
+};
+
+let cur = 0;
+const STEP_NAMES = {1:'기본정보',2:'출원형태',3:'로고·모티프',4:'무드',5:'느낌문장',6:'컬러·서체',7:'레퍼런스',8:'중점사항',9:'활용처·제출'};
+
+function goTo(n){
+  document.getElementById('screen-'+cur).classList.remove('active');
+  cur = n;
+  document.getElementById('screen-'+n).classList.add('active');
+  window.scrollTo(0,0);
+  updateProgress();
+  saveDraft();
+}
+function goBack(){ if(cur<=1){goTo(0);return;} goTo(cur-1); }
+
+function updateProgress(){
+  const bar = document.getElementById('progressBar');
+  if(cur===0 || cur===10){ bar.style.display='none'; return; }
+  bar.style.display='block';
+  document.getElementById('progressFill').style.width = (cur/9*100)+'%';
+  document.getElementById('stepLabel').textContent = cur+' / 9 · '+STEP_NAMES[cur];
+}
+
+function validate(step){
+  if(step===1){
+    state.brandKo = document.getElementById('brandKo').value.trim();
+    document.getElementById('cta1').disabled = !(state.brandKo && state.industry);
+  }
+}
+
+function toggleChip(el, key, step, mode){
+  const group = el.parentElement;
+  const selector = mode==='img' ? '.img-card' : '.chip';
+  const getText = c => mode==='img' ? c.querySelector('.nm').textContent : c.textContent;
+  if(key === 'style'){
+    el.classList.toggle('selected');
+    state[key] = [...group.querySelectorAll(selector+'.selected')].map(getText);
+  } else {
+    group.querySelectorAll(selector).forEach(c=>c.classList.remove('selected'));
+    el.classList.add('selected');
+    state[key] = getText(el);
+  }
+  refreshStepCta(step);
+  if(step===1) validate(1);
+}
+
+function toggleMulti(el, key, step, max, mode){
+  const group = el.parentElement;
+  const already = el.classList.contains('selected');
+  const count = group.querySelectorAll('.chip.selected, .img-card.selected').length;
+  if(!already && max && count>=max){
+    const first = group.querySelector('.chip.selected, .img-card.selected');
+    if(first) first.classList.remove('selected');
+  }
+  el.classList.toggle('selected');
+  const sel = [...group.querySelectorAll('.chip.selected, .img-card.selected')];
+  state[key] = mode==='img' ? sel.map(c=>c.querySelector('.nm').textContent) : sel.map(c=>c.textContent);
+  refreshStepCta(step);
+}
+
+function selectCard(el, key, step, mode){
+  const group = el.parentElement;
+  group.querySelectorAll('.card-option, .img-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  state[key] = mode==='img' ? el.querySelector('.nm').textContent : el.querySelector('.card-title').textContent;
+  refreshStepCta(step);
+}
+
+function refreshStepCta(step){
+  const map = {
+    2: () => !!state.markType,
+    3: () => !!state.logoType,
+    4: () => state.style.length>0,
+    5: () => state.feeling.length>0,
+    6: () => state.color.length>0 && !!state.font,
+    8: () => !!state.care,
+    9: () => state.usage.length>0 && state.phone.length>=11
+  };
+  const btn = document.getElementById('cta'+step) || document.getElementById('ctaFinal');
+  if(map[step] && btn) btn.disabled = !map[step]();
+}
+
+function fmtPhone(el){
+  let v = el.value.replace(/\D/g,'');
+  if(v.length<=3) el.value=v;
+  else if(v.length<=7) el.value=v.slice(0,3)+'-'+v.slice(3);
+  else el.value=v.slice(0,3)+'-'+v.slice(3,7)+'-'+v.slice(7,11);
+  state.phone = el.value;
+  refreshStepCta(9);
+}
+document.getElementById('phone')?.addEventListener('input', ()=>refreshStepCta(9));
+
+// 무드 슬라이더
+document.querySelectorAll('.mood').forEach((m,i) => {
+  state.mood[i] = m.value; // 초기값(50)도 기록되도록
+  m.addEventListener('input', () => { state.mood[i] = m.value; });
+});
+
+// ── 경쟁사 URL 추가/삭제 ──
+function addUrl(){
+  const list = document.getElementById('compList');
+  if(list.children.length >= 3){ document.getElementById('addUrlBtn').style.display='none'; return; }
+  const div = document.createElement('div');
+  div.className = 'url-item';
+  div.innerHTML = `<input type="url" class="comp-url" placeholder="https://example.com"><button class="url-del" onclick="removeUrl(this)">×</button>`;
+  list.appendChild(div);
+  if(list.children.length >= 3) document.getElementById('addUrlBtn').style.display='none';
+}
+function removeUrl(btn){
+  const list = document.getElementById('compList');
+  if(list.children.length > 1) btn.closest('.url-item').remove();
+  else btn.parentElement.querySelector('input').value = '';
+  document.getElementById('addUrlBtn').style.display='block';
+}
+
+// ── 레퍼런스 탭 전환 ──
+function switchRef(mode){
+  document.querySelectorAll('.ref-tab').forEach(t=>t.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('refUrlPane').style.display = mode==='url' ? 'block':'none';
+  document.getElementById('refImgPane').style.display = mode==='img' ? 'block':'none';
+}
+
+// ── 이미지 업로드 ──
+const dropZone = document.getElementById('dropZone');
+['dragover','dragleave','drop'].forEach(ev => {
+  dropZone.addEventListener(ev, e => {
+    e.preventDefault();
+    if(ev==='dragover') dropZone.classList.add('drag');
+    else dropZone.classList.remove('drag');
+    if(ev==='drop') handleFiles(e.dataTransfer.files);
+  });
+});
+
+function handleFiles(files){
+  const arr = [...files].slice(0, 3 - state.refImages.length);
+  arr.forEach(file => {
+    if(file.size > 5*1024*1024){ alert(file.name+' — 5MB를 초과해요'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      const id = 'img'+Date.now()+Math.random();
+      state.refImages.push({ id, name:file.name, dataUrl:e.target.result });
+      renderThumbs();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function renderThumbs(){
+  const g = document.getElementById('thumbGrid');
+  g.innerHTML = state.refImages.map(img => `
+    <div class="thumb">
+      <img src="${img.dataUrl}">
+      <button class="rm" onclick="removeImg('${img.id}')">×</button>
+    </div>`).join('');
+}
+function removeImg(id){
+  state.refImages = state.refImages.filter(i=>i.id!==id);
+  renderThumbs();
+}
+
+// ── 제출 ──
+function submit(){
+  if(directionLocked){
+    alert('디자인 방향서가 이미 업로드되어 수정이 불가능합니다. 담당자에게 문의해 주세요.');
+    return;
+  }
+  // 모든 텍스트 입력값을 제출 직전에 한 번 더 수집 (누락 방지)
+  syncTextInputs();
+
+  const MOOD_LABELS = [['클래식','모던'],['친근함','고급스러움'],['부드러움','강렬함']];
+  const moodSummary = state.mood.length
+    ? state.mood.map((v,i)=>{
+        const [l,r] = MOOD_LABELS[i] || ['',''];
+        const n = Number(v);
+        return `${l} ${100-n}% ${r} ${n}%`;
+      }).join(' / ')
+    : '';
+
+  const colorSummary = [state.color.join(', '), state.colorPref ? ('선호색상: '+state.colorPref) : '']
+    .filter(Boolean).join(' / ');
+
+  const qs = new URLSearchParams(location.search);
+  const code = qs.get('c') || '';
+  const key = qs.get('k') || '';
+
+  sendToSheet({
+    type: 'survey',
+    timestamp: new Date().toLocaleString('ko-KR'),
+    code: code,
+    brandKo: state.brandKo, brandEn: state.brandEn,
+    slogan: state.slogan, industry: state.industry,
+    markType: state.markType, logoType: state.logoType,
+    motif: state.motif, style: state.style.join(', '),
+    feeling: state.feeling.join(', '), color: colorSummary,
+    font: state.font, usage: state.usage.join(', '),
+    bizDesc: state.bizDesc, phone: state.phone, etc: state.etc,
+    care: state.care, mood: moodSummary,
+    competitors: state.competitors.join(', '),
+    refUrl: state.refUrl,
+    refImages: state.refImages.map(i=>({name:i.name, dataUrl:i.dataUrl}))
+  });
+
+  showResultLink(code, key);
+  goTo(10);
+  clearDraft();
+}
+
+// ── 제출 완료 화면에 결과 확인 링크 연결 ──
+function showResultLink(code, key){
+  const box = document.getElementById('resultLinkBox');
+  if(code && key){
+    const url = `report.html?c=${encodeURIComponent(code)}&k=${encodeURIComponent(key)}`;
+    box.innerHTML = `
+      <a class="result-link" href="${url}">📊 실시간 진행 보고서 확인하기</a>
+      <div class="result-hint">방향서·시안·변리사 검토 의견이 준비되면 이 링크에서 확인하실 수 있어요.<br>이 링크는 즐겨찾기해 두시면 다음에도 바로 열어보실 수 있어요.</div>`;
+  } else {
+    box.innerHTML = `<div class="result-hint">담당자가 안내드리는 별도 링크를 통해 진행 상황을 확인하실 수 있어요.</div>`;
+  }
+}
+
+const SHEET_URL = 'https://script.google.com/macros/s/AKfycbzAuN__6_V1CWM8mq1xojsl2N6LHESdv759rmNSpx277wGrohBvdRgjnZKvPw7Gg6ir/exec';
+function sendToSheet(data){
+  if(SHEET_URL === 'YOUR_APPS_SCRIPT_URL_HERE'){ console.log('[DEV] 전송데이터', data); return; }
+  fetch(SHEET_URL, {
+    method:'POST', mode:'no-cors',
+    headers:{'Content-Type':'application/json'},
+    body: JSON.stringify(data)
+  }).catch(console.error);
+}
+
+// ════════════════════════════════════════════════════════════
+// 자동저장 · 복원 (localStorage)
+// ────────────────────────────────────────────────────────────
+// 새로고침·실수 종료 시 답변이 사라지지 않도록 매 입력마다
+// 브라우저(이 기기)에만 임시 저장합니다. 이미지 파일은 용량
+// 문제로 저장하지 않고, 나머지 텍스트·선택 답변만 복원됩니다.
+// ════════════════════════════════════════════════════════════
+const DRAFT_KEY = 'bici_survey_draft_v1';
+
+// 텍스트 입력값을 state로 동기화 (저장·제출 전 공통 사용)
+function syncTextInputs(){
+  const read = id => { const el = document.getElementById(id); return el ? el.value : ''; };
+  state.brandKo = read('brandKo').trim();
+  state.brandEn = read('brandEn').trim();
+  state.slogan = read('slogan').trim();
+  state.bizDesc = read('bizDesc');
+  state.motif = read('motif');
+  state.phone = read('phone').trim();
+  state.etc = read('etc');
+  state.refUrl = read('refUrl').trim();
+  state.competitors = [...document.querySelectorAll('.comp-url')].map(i=>i.value.trim()).filter(Boolean);
+}
+
+function saveDraft(){
+  try {
+    syncTextInputs();
+    const snapshot = Object.assign({}, state, {
+      refImages: (state.refImages || []).map(i => ({ name: i.name })) // 이미지 원본은 저장 제외
+    });
+    localStorage.setItem(DRAFT_KEY, JSON.stringify({ cur, state: snapshot, savedAt: Date.now() }));
+  } catch(e) { /* 저장 공간 부족 등은 조용히 무시 */ }
+}
+
+function clearDraft(){
+  try { localStorage.removeItem(DRAFT_KEY); } catch(e) {}
+}
+
+let saveTimer;
+function scheduleSave(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveDraft, 300);
+}
+
+// 텍스트 입력은 디바운스, 클릭형 선택은 즉시 저장
+document.addEventListener('input', e => {
+  if(e.target.matches('input, textarea')) scheduleSave();
+});
+document.addEventListener('click', e => {
+  if(e.target.closest('.chip, .card-option, .img-card, .ref-tab, .add-url-btn, .url-del, .rm')) {
+    setTimeout(saveDraft, 60);
+  }
+});
+window.addEventListener('beforeunload', saveDraft);
+setInterval(saveDraft, 5000);
+
+// 저장된 선택값을 화면에 다시 칠하기
+function restoreUI(){
+  const setVal = (id, v) => { const el = document.getElementById(id); if(el && v) el.value = v; };
+  setVal('brandKo', state.brandKo);
+  setVal('brandEn', state.brandEn);
+  setVal('slogan', state.slogan);
+  setVal('bizDesc', state.bizDesc);
+  setVal('motif', state.motif);
+  setVal('phone', state.phone);
+  setVal('etc', state.etc);
+  setVal('refUrl', state.refUrl);
+
+  // 경쟁사 URL 여러 줄 복원
+  if(state.competitors && state.competitors.length){
+    const list = document.getElementById('compList');
+    list.innerHTML = '';
+    state.competitors.forEach(url => {
+      const div = document.createElement('div');
+      div.className = 'url-item';
+      const input = document.createElement('input');
+      input.type = 'url'; input.className = 'comp-url';
+      input.placeholder = 'https://example.com'; input.value = url;
+      const btn = document.createElement('button');
+      btn.className = 'url-del'; btn.textContent = '×';
+      btn.onclick = () => removeUrl(btn);
+      div.appendChild(input); div.appendChild(btn);
+      list.appendChild(div);
+    });
+    document.getElementById('addUrlBtn').style.display = state.competitors.length >= 3 ? 'none' : 'block';
+  }
+
+  // 단일 선택 그룹 복원
+  [
+    ['industryGroup','industry','text'],
+    ['markGroup','markType','title'],
+    ['logoGrid','logoType','nm'],
+    ['colorPrefGroup','colorPref','title'],
+    ['fontGroup','font','nm'],
+    ['careGroup','care','title'],
+  ].forEach(([gid,key,mode]) => {
+    const g = document.getElementById(gid);
+    if(!g || !state[key]) return;
+    g.querySelectorAll('.chip,.card-option,.img-card').forEach(c => {
+      const el = mode==='title' ? c.querySelector('.card-title') : mode==='nm' ? c.querySelector('.nm') : c;
+      if(el && el.textContent.trim() === state[key]) c.classList.add('selected');
+    });
+  });
+
+  // 복수 선택 그룹 복원
+  [
+    ['styleGroup','style','nm'],
+    ['feelGroup','feeling','text'],
+    ['colorGrid','color','nm'],
+    ['usageGroup','usage','text'],
+  ].forEach(([gid,key,mode]) => {
+    const g = document.getElementById(gid);
+    if(!g || !state[key] || !state[key].length) return;
+    g.querySelectorAll('.chip,.img-card').forEach(c => {
+      const el = mode==='nm' ? c.querySelector('.nm') : c;
+      if(el && state[key].includes(el.textContent.trim())) c.classList.add('selected');
+    });
+  });
+
+  // 무드 슬라이더 복원
+  if(state.mood && state.mood.length){
+    document.querySelectorAll('.mood').forEach((m,i) => { if(state.mood[i] !== undefined) m.value = state.mood[i]; });
+  }
+
+  // 버튼 활성화 상태 재계산
+  [2,3,4,5,6,8,9].forEach(refreshStepCta);
+  validate(1);
+
+  if(state.refImages && state.refImages.length){
+    document.getElementById('thumbGrid').insertAdjacentHTML('beforebegin',
+      `<div style="font-size:12px;color:var(--hint);margin-top:8px;">📎 이전에 첨부하셨던 이미지(${state.refImages.length}장)는 용량 문제로 다시 첨부해 주셔야 해요.</div>`);
+  }
+}
+
+function resumeDraft(){
+  let raw;
+  try { raw = localStorage.getItem(DRAFT_KEY); } catch(e) { return; }
+  if(!raw) return;
+  let draft;
+  try { draft = JSON.parse(raw); } catch(e) { return; }
+  if(!draft || !draft.state) return;
+
+  Object.assign(state, draft.state);
+  restoreUI();
+  state.refImages = []; // 실제 파일은 복원 불가 — 안내 표시 후 비움
+  document.getElementById('resumeBanner').classList.remove('show');
+  goTo(draft.cur && draft.cur > 0 ? draft.cur : 1);
+}
+
+function discardDraft(){
+  clearDraft();
+  document.getElementById('resumeBanner').classList.remove('show');
+}
+
+// 페이지 로드 시 임시저장 데이터 확인
+(function checkDraftOnLoad(){
+  let raw;
+  try { raw = localStorage.getItem(DRAFT_KEY); } catch(e) { return; }
+  if(!raw) return;
+  try {
+    const draft = JSON.parse(raw);
+    if(draft && draft.state && (draft.cur > 0)) {
+      document.getElementById('resumeBanner').classList.add('show');
+    }
+  } catch(e) {}
+})();
+
+// ════════════════════════════════════════════════════════════
+// 이전 제출 응답 불러와 수정하기
+// ════════════════════════════════════════════════════════════
+function jsonpGet(url){
+  return new Promise((resolve, reject) => {
+    const cbName = 'jsonp_idx_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+    const timer = setTimeout(() => { cleanup(); reject(new Error('시간 초과')); }, 12000);
+    function cleanup(){ clearTimeout(timer); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script); }
+    window[cbName] = data => { cleanup(); resolve(data); };
+    const script = document.createElement('script');
+    script.src = url + (url.includes('?') ? '&' : '?') + 'callback=' + cbName;
+    script.onerror = () => { cleanup(); reject(new Error('로드 실패')); };
+    document.body.appendChild(script);
+  });
+}
+
+let serverSurveyCache = null;
+let directionLocked = false;
+
+async function checkPrevSubmission(){
+  if(SHEET_URL === 'YOUR_APPS_SCRIPT_URL_HERE') return;
+  const qs = new URLSearchParams(location.search);
+  const code = qs.get('c'), key = qs.get('k');
+  if(!code || !key) return;
+  try {
+    const d = await jsonpGet(`${SHEET_URL}?co=${encodeURIComponent(code)}&k=${encodeURIComponent(key)}`);
+
+    if(d && d.company && d.company.direction){
+      // 디자인 방향서가 이미 업로드된 경우 — 수정 잠금
+      directionLocked = true;
+      document.getElementById('lockedBanner').classList.add('show');
+      document.getElementById('landingCta').disabled = true;
+      document.getElementById('landingCta').textContent = '수정이 불가능합니다';
+      return;
+    }
+
+    if(d && d.survey && Object.keys(d.survey).length){
+      serverSurveyCache = d.survey;
+      document.getElementById('prevSubmitBanner').classList.add('show');
+    }
+  } catch(e){ /* 조용히 무시 — 최초 방문자에겐 그냥 새 설문 화면만 보이면 됨 */ }
+}
+checkPrevSubmission();
+
+function loadPrevSubmission(){
+  if(!serverSurveyCache) return;
+  const sv = serverSurveyCache;
+
+  state.brandKo = sv['브랜드명(국문)'] || '';
+  state.brandEn = sv['브랜드명(영문)'] || '';
+
+  state.slogan = sv['슬로건'] || '';
+  state.industry = sv['업종'] || '';
+  state.markType = sv['출원형태'] || '';
+  state.logoType = sv['로고유형'] || '';
+  state.motif = sv['모티프'] || '';
+  state.style = sv['스타일'] ? sv['스타일'].split(', ') : [];
+  state.feeling = sv['느낌문장'] ? sv['느낌문장'].split(', ') : [];
+  state.font = sv['서체'] || '';
+  state.usage = sv['활용처'] ? sv['활용처'].split(', ') : [];
+  state.care = sv['중점사항'] || '';
+  state.etc = sv['요청사항'] || '';
+  state.bizDesc = sv['사업내용'] || '';
+  state.phone = sv['연락처'] || '';
+  state.competitors = sv['경쟁사URL'] ? sv['경쟁사URL'].split(', ').filter(Boolean) : [];
+  state.refUrl = sv['레퍼런스URL'] || '';
+
+  // 컬러: "웜톤 / 선호색상: 블루 계열" 형태 분리
+  const colorRaw = sv['컬러'] || '';
+  const colorParts = colorRaw.split(' / ');
+  state.color = colorParts[0] ? colorParts[0].split(', ').filter(Boolean) : [];
+  const prefPart = colorParts.find(p => p.startsWith('선호색상: '));
+  state.colorPref = prefPart ? prefPart.replace('선호색상: ', '') : '';
+
+  // 무드: "50% / 60% / 40%" 형태 분리
+  // 무드: "클래식 30% 모던 70% / ..." 형식에서 오른쪽 값(슬라이더 값) 추출
+  state.mood = sv['무드수치'] ? sv['무드수치'].split(' / ').map(seg => {
+    const nums = seg.match(/(\d+)%/g);
+    return nums && nums.length ? nums[nums.length-1].replace('%','') : '50';
+  }) : [];
+
+  restoreUI();
+  document.getElementById('prevSubmitBanner').classList.remove('show');
+  goTo(1);
+}
+
+</script>
+</body>
+</html>
