@@ -391,10 +391,26 @@ const dir = document.getElementById('directionBox');
     op.innerHTML = '<div class="empty">변리사 검토 의견이 등록되면 이곳에 표시됩니다</div>';
   }
 
-  // 고객 피드백 (이메일·전화로 받은 내용을 업체목록 '고객피드백' 셀에 기록)
+  // 고객 피드백 (텍스트 + 이미지 링크 지원 — Drive 공유링크/이미지URL 자동 썸네일)
   const fb = document.getElementById('feedbackBox');
   if(d.company.feedback){
-    fb.innerHTML = `<div class="card"><div class="direction-body">${esc(d.company.feedback)}</div></div>`;
+    const raw = String(d.company.feedback);
+    const urls = raw.match(/https?:\/\/[^\s,]+/g) || [];
+    const imgUrls = [];
+    urls.forEach(u => {
+      const m = /\/file\/d\/([a-zA-Z0-9_-]{10,})/.exec(u) || /[?&]id=([a-zA-Z0-9_-]{10,})/.exec(u);
+      if(m) imgUrls.push({ thumb: `https://drive.google.com/thumbnail?id=${m[1]}&sz=w1000`, link: u });
+      else if(/\.(png|jpe?g|gif|webp)(\?|$)/i.test(u)) imgUrls.push({ thumb: u, link: u });
+    });
+    let fbText = raw;
+    imgUrls.forEach(x => { fbText = fbText.split(x.link).join(''); });
+    fbText = fbText.replace(/[ \t]+\n/g, '\n').trim();
+    fb.innerHTML = `<div class="card">
+      ${fbText ? `<div class="direction-body" style="white-space:pre-line;">${esc(fbText)}</div>` : ''}
+      ${imgUrls.length ? `<div class="fact-grid" style="margin-top:${fbText ? '12px' : '0'};">
+        ${imgUrls.map(x => `<a href="${esc(x.link)}" target="_blank" style="display:block;"><img src="${esc(x.thumb)}" style="width:100%;aspect-ratio:1;object-fit:cover;border-radius:16px;border:1px solid var(--line);display:block;background:#fff;"></a>`).join('')}
+      </div>` : ''}
+    </div>`;
   } else {
     fb.innerHTML = '<div class="empty">방향서 확인 후 전달해 주신 의견이 이곳에 기록됩니다</div>';
   }
